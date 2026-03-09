@@ -1,0 +1,24 @@
+# 依赖目录
+node_modules/
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# 构建产物
+dist/
+build/
+out/
+lib/
+
+# 临时文件
+*.tmp
+*.temp
+*.pid
+*.seed
+*.pid.lock
+
+# 包管理器缓存
+.npm
+.yarn-cache
