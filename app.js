@@ -2,6 +2,7 @@ const express = require('express')
 const heFengRouter = require('./router/he_feng')
 const syncWeatherData = require('./services/syncWeather')
 const cors = require('cors');
+const cron = require('node-cron');
 const app = express()
 app.use(cors());
 app.use(heFengRouter)
