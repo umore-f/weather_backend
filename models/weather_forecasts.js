@@ -1,6 +1,19 @@
 'use strict';
+const {
+  Model
+} = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  const WeatherForecast = sequelize.define('WeatherForecast', {
+  class WeatherForecast extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+      // define association here
+    }
+  }
+  WeatherForecast.init( {
     id: {
       type: DataTypes.BIGINT,
       primaryKey: true,
@@ -103,8 +116,17 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
       comment: '创建时间'
+    },
+    feelslike: {
+      type: DataTypes.INTEGER,
+      comment: '体感温度'
+    },
+    wind_gust: {
+      type: DataTypes.INTEGER,
+      comment: '阵风风速'
     }
   }, {
+    sequelize,
     tableName: 'weather_forecasts',   // 指定表名，与SQL一致
     timestamps: false,                 // 不使用默认的 createdAt/updatedAt
     underscored: true,                  // 字段命名使用下划线风格

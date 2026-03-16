@@ -5,7 +5,7 @@ const FIELDS = [
 'temperature', 'humidity', 'wind_speed', 'wind_direction',
 'precipitation', 'precipitation_probability', 'weather_describe',
 'pressure', 'cloud_cover', 'visibility', 'uv_index', 'aqi',
-'dew', 'data_version', 'is_valid', 'fetch_time' 
+'dew', 'data_version', 'is_valid', 'fetch_time', 'feelslike', 'wind_gust' 
 ] // 需要更新的字段
 
 module.exports = {

@@ -8,7 +8,7 @@ const vcRouter = require("./visualCrossing")
 const tiRouter = require("./tomorrowIo")
 
 router.use(heRouter)
-router.use(owRouter)
+// router.use(owRouter)
 router.use(vcRouter)
 router.use(tiRouter)
 

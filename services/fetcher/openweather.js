@@ -23,7 +23,7 @@ router.get('/op_hours',async (req,res)=>{
         }
         const [lon, lat] = locationStr.split(','); // 注意顺序：经度在前，纬度在后
 
-        const response = await axios.get(`http://api.openweathermap.org/data/2.5/forecast`, {
+        const response = await axios.get(`https://api.openweathermap.org/data/2.5/forecast`, {
             params: { 
                 lat: lat.trim(),
                 lon: lon.trim(),
