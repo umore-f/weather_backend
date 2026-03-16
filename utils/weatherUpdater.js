@@ -123,8 +123,11 @@ async function syncVcWeatherData(cityName) {
         console.error('同步过程中发生错误:', error);
     }
 }
+// 并发执行
+async function syncWeatherData(cityName) {
+    const [result1, result2, result3] = await Promise.all([syncTiWeatherData(cityName), syncHfWeatherData(cityName), syncVcWeatherData(cityName)]);
+    return [result1, result2, result3];
+}
 module.exports = {
-    syncTiWeatherData,
-    syncHfWeatherData,
-    syncVcWeatherData,
+    syncWeatherData
 }
