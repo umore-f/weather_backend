@@ -1,7 +1,7 @@
 const axios = require('axios');
-const { city: cityModel } = require('../models'); 
+const { City } = require('../models'); 
 const  syncCityData  = require('../services/fetcher/city')
-require('dotenv').config();
+require('dotenv').config({path:'../.env'});
 
 // 城市列表
 const cityList = [

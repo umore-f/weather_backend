@@ -38,9 +38,24 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: true,
         comment: '是否启用（用于定时任务）'
+      },
+            // 时间戳字段（timestamps: true + underscored: true）
+      created_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        comment: '创建时间'
+      },
+      updated_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
+        comment: '更新时间'
       }
     }, {
-      comment: '城市基础信息表' // 表注释
+      comment: '城市基础信息表', // 表注释
+      engine: 'InnoDB',
+      charset: 'utf8mb4',
     });
 
     // 添加索引

@@ -54,7 +54,7 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'City',
     tableName: 'cities',                // 指定表名
-    timestamps: false,                    // 是否启用时间戳
+    timestamps: true,                    // 是否启用时间戳
     underscored: true,                   // 将 createdAt 映射为 created_at，updatedAt 映射为 updated_at
     comment: '城市基础信息表',           // 表注释
     indexes: [                           // 定义索引
