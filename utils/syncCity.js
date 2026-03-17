@@ -1,10 +1,8 @@
-// syncUsers.js
+
 const axios = require('axios'); // 用于发送HTTP请求
 const { current_weather } = require('../models'); // 引入你的Sequelize模型
 
-/**
- * 从API获取用户数据并存入本地数据库
- */
+
 async function syncWeatherData() {
     try {
         // 1. 从外部API获取数据

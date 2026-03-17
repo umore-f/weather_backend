@@ -3,7 +3,7 @@ const { city: cityModel } = require('../models');
 const  syncCityData  = require('../services/fetcher/city')
 require('dotenv').config();
 
-// 城市列表（可以从文件导入，或直接写在数组里）
+// 城市列表
 const cityList = [
     '北京', '上海', '广州', '深圳', '杭州', '成都', '南京', '武汉', '重庆', '苏州',
     '天津', '长沙', '青岛', '西安', '郑州', '合肥', '宁波', '无锡', '济南', '福州',
