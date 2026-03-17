@@ -21,10 +21,10 @@ function mapTiWeatherData(rawData, options = {}) {
     lat = null,
     lon = null,
     fetch_time = new Date().toString(), // 默认当前时间
-    aqi = null,
-    data_version = 'v1',
-    is_valid = true,
-    created_at = new Date().toString(),
+    // aqi = null,
+    // data_version = 'v1',
+    // is_valid = true,
+    // created_at = new Date().toString(),
   } = options;
 
   // 计算总降水量（累积值），根据你的业务需求调整
@@ -54,11 +54,11 @@ function mapTiWeatherData(rawData, options = {}) {
     cloud_cover: values.cloudCover,
     visibility: values.visibility,
     uv_index: values.uvIndex,
-    aqi,
+    // aqi,
     dew: values.dewPoint,
-    data_version,
-    is_valid,
-    created_at,
+    // data_version,
+    // is_valid,
+    // created_at,
     feelslike: values.temperatureApparent,
     wind_gust: values.windGust
   };
@@ -73,9 +73,9 @@ function mapHfWeatherData(rawData, options = {}) {
     lat = null,
     lon = null,
     fetch_time = new Date().toString(), // 默认当前时间
-    aqi = null,
-    data_version = 'v7',
-    is_valid = true,
+    // aqi = null,
+    // data_version = 'v7',
+    // is_valid = true,
     created_at = new Date().toString(),
     visibility = null,
     uv_index = null,
@@ -89,7 +89,7 @@ function mapHfWeatherData(rawData, options = {}) {
     city,
     source,
     forecast_time: rawData.fxTime,                // 原数据中的 time
-    fetch_time,
+    // fetch_time,
     lat,
     lon,
     temperature: rawData.temp,
@@ -102,8 +102,8 @@ function mapHfWeatherData(rawData, options = {}) {
     pressure: rawData.pressure,   
     cloud_cover: rawData.cloud,
     dew: rawData.dew,
-    is_valid,
-    created_at,
+    // is_valid,
+    // created_at,
   };
 }
 
@@ -113,11 +113,11 @@ function mapVcWeatherData(rawData, options = {}) {
     city = null,
     lat = null,
     lon = null,
-    fetch_time = new Date().toString(), 
-    aqi = null,
-    data_version = 'v1',
+    // fetch_time = new Date().toString(), 
+    // aqi = null,
+    // data_version = 'v1',
     is_valid = true,
-    created_at = new Date().toString(),
+    // created_at = new Date().toString(),
     datetime
   } = options;
 
@@ -129,7 +129,7 @@ function mapVcWeatherData(rawData, options = {}) {
     city,
     source: rawData.source,
     forecast_time: datetime+'T'+rawData.datetime,                // 原数据中的 time
-    fetch_time,
+    // fetch_time,
     lat,
     lon,
     temperature: rawData.temp,
@@ -145,10 +145,10 @@ function mapVcWeatherData(rawData, options = {}) {
     cloud_cover: rawData.cloudcover,
     dew: rawData.dew,
     is_valid,
-    created_at,
+    // created_at,
     uv_index: rawData.uvindex,
     visibility: rawData.visibility,
-    data_version
+    // data_version
   };
 }
 module.exports = {

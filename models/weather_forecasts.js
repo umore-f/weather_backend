@@ -36,11 +36,11 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,           // 复合主键的一部分
       comment: '预报时间点（北京时间）'
     },
-    fetch_time: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      comment: '数据抓取时间'
-    },
+    // fetch_time: {
+    //   type: DataTypes.DATE,
+    //   allowNull: false,
+    //   comment: '数据抓取时间'
+    // },
     lat: {
       type: DataTypes.DECIMAL(10, 6),
       allowNull: false,
@@ -75,10 +75,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       comment: '降水概率(%)'
     },
-    weather_describe: {
-      type: DataTypes.STRING(200),
-      comment: '天气描述'          // 原SQL注释为“数据源”，根据字段含义调整，可按需修改
-    },
+    // weather_describe: {
+    //   type: DataTypes.STRING(200),
+    //   comment: '天气描述'          // 原SQL注释为“数据源”
+    // },
     pressure: {
       type: DataTypes.DECIMAL(6, 2),
       comment: '气压(hPa)'
@@ -95,13 +95,13 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       comment: '紫外线指数'
     },
-    aqi: {
-      type: DataTypes.INTEGER,
-      comment: '空气质量指数'
-    },
+    // aqi: {
+    //   type: DataTypes.INTEGER,
+    //   comment: '空气质量指数'
+    // },
     dew: {
       type: DataTypes.STRING(20),
-      comment: '露点温度或其他'    // 原SQL注释为“数据源”，此处优化，可按需恢复
+      comment: '露点温度或其他'    
     },
     data_version: {
       type: DataTypes.STRING(20),
@@ -112,11 +112,11 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: true,
       comment: '数据是否有效'
     },
-    created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-      comment: '创建时间'
-    },
+    // created_at: {
+    //   type: DataTypes.DATE,
+    //   defaultValue: DataTypes.NOW,
+    //   comment: '创建时间'
+    // },
     feelslike: {
       type: DataTypes.INTEGER,
       comment: '体感温度'
@@ -128,7 +128,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     tableName: 'weather_forecasts',   // 指定表名，与SQL一致
-    timestamps: false,                 // 不使用默认的 createdAt/updatedAt
+    timestamps: true,                 // 不使用默认的 createdAt/updatedAt
     underscored: true,                  // 字段命名使用下划线风格
     comment: '原始预报数据表',           // 表注释
     indexes: [                          // 定义索引，与SQL一致
