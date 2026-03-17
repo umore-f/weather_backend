@@ -9,14 +9,10 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    // await queryInterface.addColumn('weather_forecasts', 'feelslike', {
-    //   type: Sequelize.STRING,
-    //   allowNull: true,      
-    // });
-    await queryInterface.removeColumn('weather_forecasts','windgust')
-    await queryInterface.changeColumn('weather_forecasts', 'wind_gust', {
-      type: Sequelize.STRING,
-      allowNull: true,      
+    await queryInterface.addColumn('daily_weather', 'is_valid', {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      comment: '是否激活'
     });
   },
 

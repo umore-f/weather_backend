@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class daily_weather extends Model {
+  class DailyWeather extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  daily_weather.init({
+  DailyWeather.init({
     id: {
       type: DataTypes.BIGINT,
       primaryKey: true,
@@ -24,6 +24,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(20),
       allowNull: false,
       comment: '城市名字'
+    },
+    lat: {
+      type: DataTypes.DECIMAL(10, 6),
+      allowNull: false,
+      comment: '纬度'
+    },
+    lon: {
+      type: DataTypes.DECIMAL(10, 6),
+      allowNull: false,
+      comment: '经度'
     },
     forecast_time: {
       type: DataTypes.DATE,
@@ -100,6 +110,27 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     timestamps: true,
     modelName: 'daily_weather',
+    tableName: 'weather_forecasts',
+    comment: '原始天级别预报数据表', 
+    indexes: [                          // 定义索引，与SQL一致
+      {
+        name: 'idx_location_time',
+        fields: ['lon', 'lat', 'forecast_time']   // 注意顺序：经度、纬度、预报时间
+      },
+      {
+        name: 'idx_source_time',
+        fields: ['source', 'forecast_time']
+      },
+      {
+        name: 'idx_forecast_time',
+        fields: ['forecast_time']
+      },
+      {
+        name: 'unique_city_time_source',
+        unique: true,
+        fields: ['city', 'forecast_time', 'source']
+      }
+    ]
   });
-  return daily_weather;
+  return DailyWeather;
 };

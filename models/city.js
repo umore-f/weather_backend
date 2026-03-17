@@ -64,7 +64,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       {
         name: 'idx_location',
-        fields: ['lat', 'lng']
+        fields: ['lat', 'lon']
       }
     ]
   });

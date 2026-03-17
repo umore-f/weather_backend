@@ -130,7 +130,7 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'weather_forecasts',   // 指定表名，与SQL一致
     timestamps: true,                 // 不使用默认的 createdAt/updatedAt
     underscored: true,                  // 字段命名使用下划线风格
-    comment: '原始预报数据表',           // 表注释
+    comment: '原始小时级别预报数据表',           // 表注释
     indexes: [                          // 定义索引，与SQL一致
       {
         name: 'idx_location_time',
