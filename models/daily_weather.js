@@ -109,8 +109,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     timestamps: true,
-    modelName: 'daily_weather',
-    tableName: 'weather_forecasts',
+    modelName: 'DailyWeather',
+    tableName: 'daily_weather',
     comment: '原始天级别预报数据表', 
     indexes: [                          // 定义索引，与SQL一致
       {

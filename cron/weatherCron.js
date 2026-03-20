@@ -1,10 +1,10 @@
 
 const cron = require('node-cron');
-const { syncWeatherData } = require('../utils/weatherUpdater')
+const { syncWeatherData, syncTiWeatherData } = require('../utils/weatherUpdater')
 const { CITY_LIST } = require('../utils/constants')
 // 计时循环任务 更新数据库数据
-// 每小时的第 0 分钟执行
-cron.schedule('0 * * * *', async () => {
+// 每3小时的第 0 分钟执行
+cron.schedule('0 */3 * * *', async () => {
     console.log('开始定时更新所有城市天气...');
     
     for (const city of CITY_LIST) {
@@ -18,3 +18,4 @@ cron.schedule('0 * * * *', async () => {
     
     console.log('所有城市更新完毕');
 });
+// syncWeatherData('北京')

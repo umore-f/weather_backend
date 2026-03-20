@@ -3,7 +3,6 @@ const express = require('express')
 const router = express.Router()
 const axios = require('axios');
 const { Op, where } = require('sequelize');
-const { CurrentWeather } = require('../models/current_weather')
 const { City } = require('../models')
 console.log('City:', City);
 async function getLatLon(cityName) {

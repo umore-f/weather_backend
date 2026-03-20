@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(20),      // VARCHAR(20)
       primaryKey: true,                 // 主键
       allowNull: false,
-      comment: '城市代码，如 101010100'
+      comment: 'id'
     },
     name: {
       type: DataTypes.STRING(50),
