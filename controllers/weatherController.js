@@ -5,6 +5,7 @@ const axios = require('axios');
 const { Op, where } = require('sequelize');
 const { City } = require('../models')
 console.log('City:', City);
+// 查找城市信息
 async function getLatLon(cityName) {
 const city = await City.findOne({    
     where: {
@@ -17,7 +18,9 @@ if (!city) {
 return {
     cityName: cityName,
     lat: city.lat,
-    lon: city.lon
+    lon: city.lon,
+    cityId: city.city_id,
 }
 }
+
 module.exports = getLatLon

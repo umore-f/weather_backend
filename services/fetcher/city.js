@@ -28,8 +28,8 @@ async function syncCityData(cityName) {
         }
         console.log("!!!!!!!!!",response.data.location[0]);
         
-        const { name, lat, lon, adm1:province } = response.data.location[0];
-        const cityData = { name, lat, lon, province }
+        const { name, lat, lon, adm1:province, id:city_id } = response.data.location[0];
+        const cityData = { name, lat, lon, province,city_id }
 
         // 3. 存入数据库
         console.log('正在将数据写入数据库...');
@@ -40,5 +40,5 @@ async function syncCityData(cityName) {
         console.error('同步过程中发生错误:', error);
     }
 }
-syncCityData()
+// syncCityData()
 module.exports = syncCityData;

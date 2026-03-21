@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const axios = require('axios');
-const renameFields = require('../../utils/helpers')
 
 router.get('/ti_next_hours_days',async (req,res)=>{
     try{
@@ -10,11 +9,12 @@ router.get('/ti_next_hours_days',async (req,res)=>{
             params: { 
                 location,
                 apikey:process.env.TI_PRIVATE_KEY,
-                timesteps: '1h,1d'
+                timesteps: '1h,1d',
+                timezone: 'Asia/Shanghai'
              },
         });
         console.log("!!!!!!!!",req.query);
-        res.json(renameFields(response.data));
+        res.json(response.data);
     } catch (error) {
         console.log("!!!!!!!!",req.query);
         console.error('VC天气API错误:', error.response?.data || error.message);
@@ -28,14 +28,15 @@ router.get('/ti_last_hours_days',async (req,res)=>{
             params: { 
                 location,
                 apikey:process.env.TI_PRIVATE_KEY,
-                timesteps: '1d'
+                timesteps: '1d',
+                timezone: 'Asia/Shanghai'
              },
         });
         console.log("!!!!!!!!",req.query);
-        res.json(renameFields(response.data));
+        res.json(response.data);
     } catch (error) {
         console.log("!!!!!!!!",req.query);
-        console.error('VC天气API错误:', error.response?.data || error.message);
+        console.error('TI天气API错误:', error.response?.data || error.message);
         res.status(500).json({ error: '获取实时天气失败' });
     }
 })

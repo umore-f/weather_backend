@@ -14,6 +14,9 @@ const FIELDS_DAYS = [
 'pressure', 'cloud_cover', 'visibility', 'uv_index', 
 'dew', 'is_valid', 'wind_gust', 'sunrise', 'sunset', 'type'
 ] 
+// const CITY_LIST = [
+//     '北京'
+// ];
 const CITY_LIST = [
     '北京', '上海', '广州', '深圳', '杭州', '成都', '南京', '武汉', '重庆', '苏州',
     '天津', '长沙', '青岛', '西安', '郑州', '合肥', '宁波', '无锡', '济南', '福州',

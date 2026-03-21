@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const axios = require('axios');
-const renameFields = require('../../utils/helpers')
 // router.get('/vc_hours',async (req,res)=>{
 //     try{
 //         const locationStr = req.query.location; // "116.405290,39.904990"
@@ -37,9 +36,10 @@ router.get('/vc_last_value_days',async (req,res)=>{
                 lang: "zh",
                 unitGroup: "metric",
                 include: "days",
+                timezone: 'Asia/Shanghai'
              },
         });
-        res.json(renameFields(response.data));
+        res.json(response.data);
     } catch (error) {
         // console.log("!!!!!!!!",req.query);
         console.error('VC天气API错误:', error.response?.data || error.message);
@@ -59,9 +59,10 @@ router.get('/vc_next_value_days',async (req,res)=>{
                 lang: "zh",
                 unitGroup: "metric",
                 include: "days",
+                timezone: 'Asia/Shanghai'
              },
         });
-        res.json(renameFields(response.data));
+        res.json(response.data);
     } catch (error) {
         console.log("!!!!!!!!",req.query);
         console.error('VC天气API错误:', error.response?.data || error.message);

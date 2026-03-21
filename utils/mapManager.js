@@ -64,11 +64,12 @@ function mapTiWeatherDataDays0(rawData, options = {}) {
     id: null,
     city,
     source,
-    forecast_time: new Date(time.toLocaleString("en-US", { timeZone: "Asia/Shanghai" })),
+    forecast_time: new Date(time).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" }),
     lat,
     lon,
     temp_max: values.temperatureMax,
     temp_min: values.temperatureMin,
+    temp: (values.temperatureMax + values.temperatureMin)/2,
     humidity: values.humidityAvg,
     wind_speed: values.windSpeedAvg,
     wind_direction: values.windDirectionAvg,
@@ -108,7 +109,7 @@ function mapTiWeatherDataDays1(rawData, options = {}) {
     id: null,
     city,
     source,
-    forecast_time: new Date(time.toLocaleString("en-US", { timeZone: "Asia/Shanghai" })),
+    forecast_time: new Date(time).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" }),
     lat,
     lon,
     temp_max: values.temperatureMax,
@@ -198,8 +199,8 @@ function mapHfWeatherDataDays0(rawData, options = {}) {
     // wind_gust: null,
     // wind_scale: rawData.windScaleDay,
     is_valid,
-    sunrise,
-    sunset,
+    sunrise: rawData.date + 'T' + rawData.sunrise,
+    sunset: rawData.date + 'T' + rawData.sunset,
     // weather_text: rawData.textDay,
     type 
   };
@@ -241,6 +242,7 @@ function mapHfWeatherDataDays1(rawData, options = {}) {
     type 
   };
 }
+
 // vcAPI映射
 function mapVcWeatherDataDays0(rawData, options = {}) {
   const {
@@ -273,7 +275,7 @@ function mapVcWeatherDataDays0(rawData, options = {}) {
     humidity: rawData.humidity,
     wind_speed: rawData.windspeed,
     wind_direction: rawData.winddir,
-    precip_type: rawData.preciptype.join(''),
+    precip_type: rawData.preciptype?.join(''),
     precip_total: rawData.precip,
     precip_prob: rawData.precipprob,
     pressure: rawData.pressure,
@@ -282,8 +284,8 @@ function mapVcWeatherDataDays0(rawData, options = {}) {
     uv_index: rawData.uvindex,
     dew: null,
     is_valid,
-    sunrise,
-    sunset,
+    sunrise: rawData.datetime + 'T' + rawData.sunrise,
+    sunset: rawData.datetime + 'T' + rawData.sunset,
     wind_gust: rawData.windgust,
     weather_text: rawData.conditions + rawData.description,
     type

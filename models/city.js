@@ -49,7 +49,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
       comment: '是否启用（用于定时任务）'
-    }
+    },
+    city_id: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: '和风天气城市id'
+    },
   }, {
     sequelize,
     modelName: 'City',
