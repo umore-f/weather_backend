@@ -2,8 +2,17 @@
 const axios = require('axios'); // 用于发送HTTP请求
 const getLatLon = require('../controllers/weatherController')
 const { BASE_API, FIELDS_HOURS, FIELDS_DAYS } = require('./constants')
-const { mapTiWeatherData, mapTiWeatherDataDay, mapHfWeatherData, mapVcWeatherData} = require('./mapManager')
-const { WeatherForecast, DailyWeather } = require('../models')
+const {
+  mapHfWeatherDataHours,
+  mapTiWeatherDataHours,
+  mapTiWeatherDataDays0,
+  mapTiWeatherDataDays1, 
+  mapHfWeatherDataDays0,
+  mapHfWeatherDataDays1,
+  mapVcWeatherDataDays0,
+  mapVcWeatherDataDays1,
+} = require('./mapManager')
+const { HoursForecast, DailyWeather } = require('../models')
 require('dotenv').config({ path: '../../.env' })
 
 // async function syncTiWeatherDataDay(cityName) {
@@ -39,12 +48,12 @@ require('dotenv').config({ path: '../../.env' })
 //         console.error('同步过程中发生错误:', error);
 //     }
 // }
-async function syncTiWeatherData(cityName) {
+async function syncTiNextWeatherData(cityName) {
     try {
         // 从外部API获取数据
         const location = await getLatLon(cityName)
         console.log('正在从tomorrow.io获取数据...');
-        const response = await axios.get(`${BASE_API}/ti_hours`, {
+        const response = await axios.get(`${BASE_API}/ti_next_hours_days`, {
             timeout: 10000,
             params: {
                 location: `${location.lat},${location.lon}`,
@@ -58,15 +67,53 @@ async function syncTiWeatherData(cityName) {
         };
         if (response.status == 200) {
             // 数据清洗与映射：将API数据转换为模型需要的格式
-            const tiMappedArrayHours = response.data.timelines.hourly.map(item => mapTiWeatherData(item, commonOptions));
-            const tiMappedArrayDays = response.data.timelines.daily.map(item => mapTiWeatherDataDay(item, commonOptions));
+            const tiMappedArrayHours = response.data.timelines.hourly.map(item => mapTiWeatherDataHours(item, commonOptions));
+            const tiMappedArrayDays = response.data.timelines.daily.map(item => mapTiWeatherDataDays1(item, commonOptions));
+            // 存入数据库
+            console.log(`正在将${cityName}tomorrow.io的数据写入数据库...`);
+            console.log("!!!!!!!!!",JSON.stringify(tiMappedArrayDays[0], null, 2));
+            await HoursForecast.bulkCreate(tiMappedArrayHours, {
+                updateOnDuplicate: FIELDS_HOURS
+            });
+            await DailyWeather.bulkCreate(tiMappedArrayDays, {
+                updateOnDuplicate: FIELDS_DAYS
+            });
+            // console.log("",Object.keys(DailyWeather.rawAttributes));
+            console.log(`成功将${cityName}tomorrow.io的数据写入数据库...`);
+        }
+        // console.log("!!!!!!!!!",JSON.stringify(response.data.timelines.hourly[0], null, 2));
+    } catch (error) {
+        console.error('同步过程中发生错误:', error);
+    }
+}
+async function syncTiLastWeatherData(cityName) {
+    try {
+        // 从外部API获取数据
+        const location = await getLatLon(cityName)
+        console.log('正在从tomorrow.io获取数据...');
+        const response = await axios.get(`${BASE_API}/ti_last_hours_days`, {
+            timeout: 10000,
+            params: {
+                location: `${location.lat},${location.lon}`,
+            } // 设置10秒超时，防止请求卡死
+        });
+        const commonOptions = {
+            city: location.cityName,
+            source: 'tomorrow.io',
+            lat: location.lat,
+            lon: location.lon,
+        };
+        if (response.status == 200) {
+            // 数据清洗与映射：将API数据转换为模型需要的格式
+            // const tiMappedArrayHours = response.data.timelines.hourly.map(item => mapTiWeatherDataHours(item, commonOptions));
+            const tiMappedArrayDays = response.data.timelines.daily.map(item => mapTiWeatherDataDays0(item, commonOptions));
             // 存入数据库
             console.log(`正在将${cityName}tomorrow.io的数据写入数据库...`);
 
-            await WeatherForecast.bulkCreate(tiMappedArrayHours, {
-                updateOnDuplicate: FIELDS_HOURS
-            });
-            await WeatherForecast.bulkCreate(tiMappedArrayDays, {
+            // await HoursForecast.bulkCreate(tiMappedArrayHours, {
+            //     updateOnDuplicate: FIELDS_HOURS
+            // });
+            await DailyWeather.bulkCreate(tiMappedArrayDays, {
                 updateOnDuplicate: FIELDS_DAYS
             });
             console.log(`成功将${cityName}tomorrow.io的数据写入数据库...`);
@@ -114,12 +161,13 @@ async function syncHfWeatherDataHours(cityName) {
         console.error('同步过程中发生错误:', error);
     }
 }
-async function syncHfWeatherDataDays(cityName) {
+// 和风天气未来7天
+async function syncHfNextWeatherDataDays(cityName) {
     try {
         // 从外部API获取数据
         const location = await getLatLon(cityName)
         console.log('从数据库获取经纬度...');
-        const response = await axios.get(`${BASE_API}/hf_hours`, {
+        const response = await axios.get(`${BASE_API}/hf_days`, {
             timeout: 10000,
             params: {
                 location: `${location.lon},${location.lat}`,
@@ -136,9 +184,9 @@ async function syncHfWeatherDataDays(cityName) {
             // 数据清洗与映射：将API数据转换为模型需要的格式
             console.log(`正在将${cityName}和风的数据写入数据库...`);
             // 3. 存入数据库
-            const hfMappedArray = response.data.hourly.map(item => mapHfWeatherData(item, commonOptions));
+            const hfMappedArray = response.data.daily.map(item => mapHfWeatherDataDays1(item, commonOptions));
             // console.log("!!!!!!!!!",JSON.stringify(hfMappedArray[0], null, 2));
-            await WeatherForecast.bulkCreate(hfMappedArray, {
+            await DailyWeather.bulkCreate(hfMappedArray, {
                 updateOnDuplicate: FIELDS_HOURS 
             });
             
@@ -152,13 +200,15 @@ async function syncHfWeatherDataDays(cityName) {
         console.error('同步过程中发生错误:', error);
     }
 }
-async function syncVcWeatherDataDay(cityName) {
+
+// VC未来七天
+async function syncVcNextWeatherDataDay(cityName) {
     try {
         // 从外部API获取数据
         const location = await getLatLon(cityName)
         
         console.log('从数据库获取经纬度...');
-        const response = await axios.get(`${BASE_API}/vc_hours`, {
+        const response = await axios.get(`${BASE_API}/vc_next_value_days`, {
             timeout: 10000,
             params: {
                 location: `${location.lon},${location.lat}`,
@@ -168,21 +218,20 @@ async function syncVcWeatherDataDay(cityName) {
         if (response.status == '200') {
 
             // 数据清洗与映射：将API数据转换为模型需要的格式
-            const vcMappedBigArray = response.data.days.map(item1 => item1['hours'].map(item => mapVcWeatherData(item, {
+            const vcMappedArray = response.data.days.map(item => mapVcWeatherDataDays1(item, {
                 city: location.cityName,
                 lat: location.lat,
                 lon: location.lon,
                 source: 'visualcrossing',
-                datetime: item1.datetime,
-            })))
+            }))
             // console.log("1111111111",JSON.stringify(vcMappedBigArray[0], null, 2));
 
-            const vcMappedArray = vcMappedBigArray.flat()
+            // const vcMappedArray = vcMappedBigArray.flat()
             // // const vcMappedArray = response.data.days[0].hours.map();
             // console.log("22222222222$$$$$$$$$",vcMappedArray.length,JSON.stringify(vcMappedArray[0], null, 2));
             console.log(`正在将${cityName}VC的数据写入数据库...`);
-            await WeatherForecast.bulkCreate(vcMappedArray, {
-                updateOnDuplicate: FIELDS 
+            await DailyWeather.bulkCreate(vcMappedArray, {
+                updateOnDuplicate: FIELDS_DAYS 
             });
         } else {
             console.log("和风API返回错误");
@@ -212,4 +261,6 @@ async function syncWeatherDataDay(cityName) {
 module.exports = {
     syncWeatherData
 }
-syncTiWeatherDataDay('北京')
+syncTiNextWeatherData('北京')
+syncVcNextWeatherDataDay('北京')
+syncHfNextWeatherDataDays('北京')

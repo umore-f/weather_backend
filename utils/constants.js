@@ -5,14 +5,14 @@ const FIELDS_HOURS = [
 'temperature', 'humidity', 'wind_speed', 'wind_direction',
 'precipitation', 'precipitation_probability', 'weather_describe',
 'pressure', 'cloud_cover', 'visibility', 'uv_index',
-'dew', 'is_valid', 'fetch_time', 'feelslike', 'wind_gust' 
+'dew', 'is_valid', 'feelslike', 'wind_gust' 
 ]
 // 需要更新的字段
 const FIELDS_DAYS = [
-'temp_max', 'temp_min','temp', 'humidity', 'wind_speed', 'wind_direction',
+'temp_max', 'temp_min', 'temp', 'humidity', 'wind_speed', 'wind_direction',
 'precip_type', 'precip_total', 'precip_prob', 'weather_text',
 'pressure', 'cloud_cover', 'visibility', 'uv_index', 
-'dew', 'is_valid', 'fetch_time', 'wind_gust', 'sunrise', 'sunset',
+'dew', 'is_valid', 'wind_gust', 'sunrise', 'sunset', 'type'
 ] 
 const CITY_LIST = [
     '北京', '上海', '广州', '深圳', '杭州', '成都', '南京', '武汉', '重庆', '苏州',
@@ -21,7 +21,7 @@ const CITY_LIST = [
 ];
 module.exports = {
   BASE_API,
-  FIELDS,
+  FIELDS_HOURS,
   CITY_LIST,
-  FIELDS2
+  FIELDS_DAYS
 };

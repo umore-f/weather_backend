@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class WeatherForecast extends Model {
+  class HoursForecast extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  WeatherForecast.init( {
+  HoursForecast.init( {
     id: {
       type: DataTypes.BIGINT,
       primaryKey: true,
@@ -127,7 +127,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     sequelize,
-    tableName: 'weather_forecasts',   // 指定表名，与SQL一致
+    tableName: 'hours_forecasts',   // 指定表名，与SQL一致
     timestamps: true,                 // 不使用默认的 createdAt/updatedAt
     underscored: true,                  // 字段命名使用下划线风格
     comment: '原始小时级别预报数据表',           // 表注释
@@ -152,5 +152,5 @@ module.exports = (sequelize, DataTypes) => {
     ]
   });
 
-  return WeatherForecast;
+  return HoursForecast;
 };

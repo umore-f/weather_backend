@@ -34,7 +34,7 @@ router.get('/vc_last_value_days',async (req,res)=>{
         const response = await axios.get(`https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${lat},${lon}/last1days`, {
             params: { 
                 key: process.env.VC_PRIVATE_KEY,
-                lang: "zh_cn",
+                lang: "zh",
                 unitGroup: "metric",
                 include: "days",
              },
@@ -53,10 +53,10 @@ router.get('/vc_next_value_days',async (req,res)=>{
         return res.status(400).json({ error: '缺少 location 参数' });
         }
         const [lon, lat] = locationStr.split(','); // "116.405290,39.904990"
-        const response = await axios.get(`https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${lat},${lon}/next1days`, {
+        const response = await axios.get(`https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${lat},${lon}/next7days`, {
             params: { 
                 key: process.env.VC_PRIVATE_KEY,
-                lang: "zh_cn",
+                lang: "zh",
                 unitGroup: "metric",
                 include: "days",
              },

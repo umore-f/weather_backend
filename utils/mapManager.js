@@ -10,6 +10,7 @@ function mapTiWeatherDataHours(rawData, options = {}) {
     lon = null,
     source = null,
     is_valid = 1,
+
   } = options;
   // 计算总降水量（累积值），根据你的业务需求调整
   const precipitation =
@@ -39,10 +40,10 @@ function mapTiWeatherDataHours(rawData, options = {}) {
     dew: values.dewPoint,
     feelslike: values.temperatureApparent,
     wind_gust: values.windGust,
-    is_valid
+    is_valid,
   };
 }
-function mapTiWeatherDataDays(rawData, options = {}) {
+function mapTiWeatherDataDays0(rawData, options = {}) {
   const { time, values } = rawData;
   const {
     city = null,
@@ -50,6 +51,7 @@ function mapTiWeatherDataDays(rawData, options = {}) {
     lon = null,
     source = null,
     is_valid = 1,
+    type = 0
   } = options;
 
   // 计算总降水量（累积值），根据你的业务需求调整
@@ -65,25 +67,73 @@ function mapTiWeatherDataDays(rawData, options = {}) {
     forecast_time: new Date(time.toLocaleString("en-US", { timeZone: "Asia/Shanghai" })),
     lat,
     lon,
-    temp_max: values.temperatureApparentMax,
-    temp_min: values.temperatureApparentMin,
-    humidity_avg: values.humidityAvg,
-    wind_speed_avg: values.windSpeedAvg,
-    wind_direction_avg: values.windDirectionAvg,
-    precip_total: precipitation,
-    precip_prob_avg: values.precipitationProbabilityAvg,
-    pressure_avg: values.pressureSeaLevelAvg,
-    cloud_cover_avg: values.cloudCoverAvg,
-    visibility_avg: values.visibilityAvg,
-    uv_index_avg: values.uvIndexAvg,
-    dew_avg: values.dewPointAvg,
+    temp_max: values.temperatureMax,
+    temp_min: values.temperatureMin,
+    humidity: values.humidityAvg,
+    wind_speed: values.windSpeedAvg,
+    wind_direction: values.windDirectionAvg,
     wind_gust: values.windGustAvg,
+    precip_total: precipitation,
+    precip_prob: values.precipitationProbabilityAvg,
+    pressure: values.pressureSeaLevelAvg,
+    cloud_cover: values.cloudCoverAvg,
+    visibility: values.visibilityAvg,
+    uv_index: values.uvIndexAvg,
+    dew: values.dewPointAvg,
     is_valid,
     sunrise: new Date(values.sunriseTime).toLocaleString("zh-CN", {timeZone: "Asia/Shanghai",}),
     sunset: new Date(values.sunsetTime).toLocaleString("zh-CN", {timeZone: "Asia/Shanghai",}),
-    weather_text
+    weather_text: null,
+    type
   };
 }
+function mapTiWeatherDataDays1(rawData, options = {}) {
+  const { time, values } = rawData;
+  const {
+    city = null,
+    lat = null,
+    lon = null,
+    source = null,
+    is_valid = 1,
+    type = 1
+  } = options;
+
+  // 计算总降水量（累积值），根据你的业务需求调整
+  const precipitation =
+    (values.rainAccumulationAvg || 0) +
+    (values.snowAccumulationAvg || 0) +
+    (values.sleetIntensityAvg || 0);
+
+  return {
+    id: null,
+    city,
+    source,
+    forecast_time: new Date(time.toLocaleString("en-US", { timeZone: "Asia/Shanghai" })),
+    lat,
+    lon,
+    temp_max: values.temperatureMax,
+    temp_min: values.temperatureMin,
+    temp: (Number(values.temperatureMax) + Number(values.temperatureMin))/2,
+    humidity: values.humidityAvg,
+    wind_speed: values.windSpeedAvg,
+    wind_direction: values.windDirectionAvg,
+    wind_gust: values.windGustAvg,
+    precip_total: precipitation,
+    precip_prob: values.precipitationProbabilityAvg,
+    pressure: values.pressureSeaLevelAvg,
+    cloud_cover: values.cloudCoverAvg,
+    visibility: values.visibilityAvg,
+    uv_index: values.uvIndexAvg,
+    dew: values.dewPointAvg,
+    is_valid,
+    sunrise: new Date(values.sunriseTime).toLocaleString("zh-CN", {timeZone: "Asia/Shanghai",}),
+    sunset: new Date(values.sunsetTime).toLocaleString("zh-CN", {timeZone: "Asia/Shanghai",}),
+    weather_text: null,
+    type,
+  };
+}
+
+
 // 和风天气API映射
 
 function mapHfWeatherDataHours(rawData, options = {}) {
@@ -116,13 +166,52 @@ function mapHfWeatherDataHours(rawData, options = {}) {
     uv_index: null,
   };
 }
-function mapHfWeatherDataDays(rawData, options = {}) {
+function mapHfWeatherDataDays0(rawData, options = {}) {
     const {
     city = null,
     lat = null,
     lon = null,
     source = null,
     is_valid = 1,
+    type = 0
+  } = options;
+  return {
+    id: null,
+    city,
+    source,
+    forecast_time: rawData.date,
+    lat,
+    lon,
+    temp_max: rawData.tempMax,
+    temp_min: rawData.tempMin,
+    temp: (rawData.tempMax + rawData.tempMin)/2,
+    humidity: rawData.humidity,
+    // wind_speed: rawData.windSpeedDay,
+    // wind_direction: rawData.wind360Day,
+    precip_total: rawData.precip,
+    // precip_prob: null,
+    pressure: rawData.pressure,
+    // cloud_cover: rawData.cloud,
+    // visibility: rawData.vis,
+    // uv_index: rawData.uvIndex,
+    // dew: null,
+    // wind_gust: null,
+    // wind_scale: rawData.windScaleDay,
+    is_valid,
+    sunrise,
+    sunset,
+    // weather_text: rawData.textDay,
+    type 
+  };
+}
+function mapHfWeatherDataDays1(rawData, options = {}) {
+    const {
+    city = null,
+    lat = null,
+    lon = null,
+    source = null,
+    is_valid = 1,
+    type = 1
   } = options;
   return {
     id: null,
@@ -133,11 +222,11 @@ function mapHfWeatherDataDays(rawData, options = {}) {
     lon,
     temp_max: rawData.tempMax,
     temp_min: rawData.tempMin,
-    temp: (rawData.tempMax + rawData.tempMin)/2,
+    temp: (Number(rawData.tempMax) + Number(rawData.tempMin))/2,
     humidity: rawData.humidity,
     wind_speed: rawData.windSpeedDay,
     wind_direction: rawData.wind360Day,
-    precip_total: precip,
+    precip_total: rawData.precip,
     precip_prob: null,
     pressure: rawData.pressure,
     cloud_cover: rawData.cloud,
@@ -145,21 +234,22 @@ function mapHfWeatherDataDays(rawData, options = {}) {
     uv_index: rawData.uvIndex,
     dew: null,
     wind_gust: null,
-    wind_scale: rawData.windScaleDay,
     is_valid,
-    sunrise,
-    sunset,
-    weather_text: rawData.textDay 
+    sunrise: rawData.fxDate + 'T' + rawData.sunrise,
+    sunset: rawData.fxDate + 'T' + rawData.sunset,
+    weather_text: rawData.textDay,
+    type 
   };
 }
 // vcAPI映射
-function mapVcWeatherDataDays(rawData, options = {}) {
+function mapVcWeatherDataDays0(rawData, options = {}) {
   const {
     city = null,
     lat = null,
     lon = null,
     source = null,
     is_valid = 1,
+    type = 0,
   } = options;
   return {
     id: null,
@@ -171,15 +261,15 @@ function mapVcWeatherDataDays(rawData, options = {}) {
     temp_max: rawData.tempmax,
     temp_min: rawData.tempmin,
     temp: rawData.temp,
-    feelslike_max: rawData.feelslikemax,
-    feelslike_min: rawData.feelslike_min,
-    feelslike: rawData.feelslike,
-    precipcover: rawData.precip_cover,
-    snow: rawData.snow,
-    snow_depth: rawData.snowdepth,
-    solar_radiation: rawData.solarradiation,
-    solar_energy: rawData.solarenergy,
-    severe_risk: rawData.severerisk,
+    // feelslike_max: rawData.feelslikemax,
+    // feelslike_min: rawData.feelslike_min,
+    // feelslike: rawData.feelslike,
+    // precipcover: rawData.precip_cover,
+    // snow: rawData.snow,
+    // snow_depth: rawData.snowdepth,
+    // solar_radiation: rawData.solarradiation,
+    // solar_energy: rawData.solarenergy,
+    // severe_risk: rawData.severerisk,
     humidity: rawData.humidity,
     wind_speed: rawData.windspeed,
     wind_direction: rawData.winddir,
@@ -191,17 +281,68 @@ function mapVcWeatherDataDays(rawData, options = {}) {
     visibility: rawData.visibility,
     uv_index: rawData.uvindex,
     dew: null,
-    wind_gust: windgust,
     is_valid,
     sunrise,
     sunset,
     wind_gust: rawData.windgust,
-    weather_text: rawData.conditions + rawData.description
+    weather_text: rawData.conditions + rawData.description,
+    type
+  };
+}
+function mapVcWeatherDataDays1(rawData, options = {}) {
+  const {
+    city = null,
+    lat = null,
+    lon = null,
+    source = null,
+    is_valid = 1,
+    type = 1,
+  } = options;
+  return {
+    id: null,
+    city,
+    source,
+    forecast_time: rawData.datetime,
+    lat,
+    lon,
+    temp_max: rawData.tempmax,
+    temp_min: rawData.tempmin,
+    temp: rawData.temp,
+    // feelslike_max: rawData.feelslikemax,
+    // feelslike_min: rawData.feelslike_min,
+    // feelslike: rawData.feelslike,
+    // precipcover: rawData.precip_cover,
+    // snow: rawData.snow,
+    // snow_depth: rawData.snowdepth,
+    // solar_radiation: rawData.solarradiation,
+    // solar_energy: rawData.solarenergy,
+    // severe_risk: rawData.severerisk,
+    humidity: rawData.humidity,
+    wind_speed: rawData.windspeed,
+    wind_direction: rawData.winddir,
+    precip_type: rawData.preciptype?.join(''),
+    precip_total: rawData.precip,
+    precip_prob: rawData.precipprob,
+    pressure: rawData.pressure,
+    cloud_cover: rawData.cloudcover,
+    visibility: rawData.visibility,
+    uv_index: rawData.uvindex,
+    dew: rawData.dew,
+    is_valid,
+    sunrise: rawData.datetime + 'T' + rawData.sunrise,
+    sunset: rawData.datetime + 'T' + rawData.sunset,
+    wind_gust: rawData.windgust,
+    weather_text: rawData.conditions + ',' + rawData.description,
+    type
   };
 }
 module.exports = {
-  mapTiWeatherData,
-  mapTiWeatherDataDay,
-  mapHfWeatherData,
-  mapVcWeatherData,
+  mapHfWeatherDataHours,
+  mapTiWeatherDataHours,
+  mapTiWeatherDataDays0,
+  mapTiWeatherDataDays1, 
+  mapHfWeatherDataDays0,
+  mapHfWeatherDataDays1,
+  mapVcWeatherDataDays0,
+  mapVcWeatherDataDays1,
 };
