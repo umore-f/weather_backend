@@ -24,10 +24,19 @@ const CITY_LIST = [
 ];
 // 需要计算的字段
 const FIELDS_CAL = ['tempMax', 'tempMin', 'temp', 'humidity', 'precip', 'pressure']
+const FIELDCONFIGS = {
+  temp:     { maxError: 3, weight: 1 },   // 温度误差边界3°C
+  tempMax:  { maxError: 3, weight: 1 },
+  tempMin:  { maxError: 3, weight: 1 },
+  humidity: { maxError: 15, weight: 1 },  // 湿度误差边界15%
+  precip:   { maxError: 2, weight: 1 },   // 降水误差边界2mm
+  pressure: { maxError: 15, weight: 1 }   // 气压误差边界15hPa
+};
 module.exports = {
   BASE_API,
   FIELDS_HOURS,
   CITY_LIST,
   FIELDS_DAYS,
-  FIELDS_CAL
+  FIELDS_CAL,
+  FIELDCONFIGS
 };

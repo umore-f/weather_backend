@@ -46,5 +46,36 @@ function filterOutliersByMaxDeviation(values, thresholdRatio = 0.4) {
   }
   return values;
 }
-module.exports = { getYesterdayFormatted, isEmptyValue, filterOutliersByMaxDeviation, get_yesterday_formatted}
+// 线性计算分数
+function errorToScore(error, maxErrorBound = 1) {
+  // 线性映射：error >= maxErrorBound 得0分，error=0得100分
+  if (error >= maxErrorBound) return 0;
+  return 100 * (1 - error / maxErrorBound);
+}
+/**
+ * 根据各字段误差计算综合平均误差（归一化后）
+ * @param {Object} errors - 各字段误差值，例如 { temp: 1.5, tempMax: 2.0, tempMin: 1.8, humidity: 5, precip: 0.2, pressure: 3 }
+ * @param {Object} fieldConfigs - 各字段的配置，包括 maxError（该字段允许的最大误差，用于归一化）和 weight（权重）
+ * @returns {number} 综合平均误差（值越小越好，通常在0-1之间，但可能超过1如果误差超过maxError）
+ */
+function calculateNormalizedAverageError(errors, fieldConfigs) {
+  let totalNormalized = 0;
+  let totalWeight = 0;
+
+  for (const [field, error] of Object.entries(errors)) {
+    const config = fieldConfigs[field];
+    if (!config) continue; // 没有配置的字段忽略
+    const { maxError, weight = 1 } = config;
+    if (maxError === undefined) continue;
+
+    // 归一化：error / maxError
+    let normalized = (maxError === 0) ? (error === 0 ? 0 : 1) : (error / maxError);
+    totalNormalized += normalized * weight;
+    totalWeight += weight;
+  }
+
+  if (totalWeight === 0) return 0;
+  return totalNormalized / totalWeight;
+}
+module.exports = { getYesterdayFormatted, isEmptyValue, filterOutliersByMaxDeviation, get_yesterday_formatted, calculateNormalizedAverageError}
 

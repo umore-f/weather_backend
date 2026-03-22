@@ -1,5 +1,5 @@
 
-const { filterOutliersByMaxDeviation, isEmptyValue } = require('../../utils/helpers')
+const { filterOutliersByMaxDeviation, isEmptyValue} = require('../../utils/helpers')
 const { getHistoryWeather } = require('../../controllers/weatherController')
 /**
  * 获取某城市历史天气的统计平均值（用于拟合真实值）
@@ -90,10 +90,10 @@ function evaluateSources(realData, sources, weights = null) {
     }
 
     const avgError = validCount > 0 ? totalError / validCount : Infinity;
-    return { sourceName: source.sourceName, totalError, avgError, validFields: validCount };
+    return { city:source.cityName, target_date:source.forecastTime, source: source.source, total_error: Number(totalError.toFixed(2)), avg_error: Number(avgError.toFixed(2)), valid_fields: validCount };
   });
 
-  results.sort((a, b) => a.avgError - b.avgError);
+  results.sort((a, b) => a.avg_error - b.avg_error);
   return results;
 }
 /**

@@ -26,8 +26,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATEONLY,
       allowNull: false,
     },
-    error_value: {
+    total_error: {
       type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    avg_error: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    valid_fields: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
   }, {
