@@ -99,7 +99,7 @@ function mapTiWeatherDataDays1(rawData, options = {}) {
     type = 1
   } = options;
 
-  // 计算总降水量（累积值），根据你的业务需求调整
+  // 计算总降水量
   const precipitation =
     (values.rainAccumulationAvg || 0) +
     (values.snowAccumulationAvg || 0) +
@@ -185,7 +185,7 @@ function mapHfWeatherDataDays0(rawData, options = {}) {
     lon,
     temp_max: rawData.tempMax,
     temp_min: rawData.tempMin,
-    temp: (rawData.tempMax + rawData.tempMin)/2,
+    temp: (Number(rawData.tempMax) + Number(rawData.tempMin))/2,
     humidity: rawData.humidity,
     // wind_speed: rawData.windSpeedDay,
     // wind_direction: rawData.wind360Day,
@@ -199,8 +199,8 @@ function mapHfWeatherDataDays0(rawData, options = {}) {
     // wind_gust: null,
     // wind_scale: rawData.windScaleDay,
     is_valid,
-    sunrise: rawData.date + 'T' + rawData.sunrise,
-    sunset: rawData.date + 'T' + rawData.sunset,
+    sunrise: rawData.sunrise,
+    sunset: rawData.sunset,
     // weather_text: rawData.textDay,
     type 
   };
@@ -236,8 +236,8 @@ function mapHfWeatherDataDays1(rawData, options = {}) {
     dew: null,
     wind_gust: null,
     is_valid,
-    sunrise: rawData.fxDate + 'T' + rawData.sunrise,
-    sunset: rawData.fxDate + 'T' + rawData.sunset,
+    sunrise: rawData.sunrise,
+    sunset: rawData.sunset,
     weather_text: rawData.textDay,
     type 
   };
@@ -284,8 +284,8 @@ function mapVcWeatherDataDays0(rawData, options = {}) {
     uv_index: rawData.uvindex,
     dew: null,
     is_valid,
-    sunrise: rawData.datetime + 'T' + rawData.sunrise,
-    sunset: rawData.datetime + 'T' + rawData.sunset,
+    sunrise: rawData.sunrise,
+    sunset: rawData.sunset,
     wind_gust: rawData.windgust,
     weather_text: rawData.conditions + rawData.description,
     type
@@ -331,8 +331,8 @@ function mapVcWeatherDataDays1(rawData, options = {}) {
     uv_index: rawData.uvindex,
     dew: rawData.dew,
     is_valid,
-    sunrise: rawData.datetime + 'T' + rawData.sunrise,
-    sunset: rawData.datetime + 'T' + rawData.sunset,
+    sunrise: rawData.sunrise,
+    sunset: rawData.sunset,
     wind_gust: rawData.windgust,
     weather_text: rawData.conditions + ',' + rawData.description,
     type

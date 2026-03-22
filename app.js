@@ -1,6 +1,6 @@
 const express = require('express')
 const heFengRouter = require('./router/he_feng')
-const getWeatherRouter = require('./services/fetcher/index')
+const getWeatherRouter = require('./router/index')
 const cors = require('cors');
 
 const app = express()

@@ -1,7 +1,7 @@
 const axios = require('axios'); // 用于发送HTTP请求
-const { City } = require('../../models'); // 引入你的Sequelize模型
+const { City } = require('../models'); // 引入你的Sequelize模型
 require('dotenv').config({ path: '../../.env' })
-const {getValidToken} = require('../../token')
+const {getValidToken} = require('../token')
 
 /**
  * 从API获取用户数据并存入本地数据库

@@ -9,8 +9,14 @@ function getYesterdayFormatted() {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}${month}${day}`;
 }
-// 使用
-console.log(getYesterdayFormatted()); // 例如：20260320（假设今天是2026-03-21）
+function get_yesterday_formatted() {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 // 判断空值工具函数
 function isEmptyValue(value) {
   return value === null || value === undefined || value === '' || (typeof value === 'number' && isNaN(value));
@@ -21,7 +27,7 @@ function isEmptyValue(value) {
  * @param {number} thresholdRatio - 与均值的差占均值的比例，例如0.5表示偏差超过50%则剔除
  * @returns {number[]} 过滤后的数组
  */
-function filterOutliersByMaxDeviation(values, thresholdRatio = 0.5) {
+function filterOutliersByMaxDeviation(values, thresholdRatio = 0.4) {
   if (values.length < 3) return values; // 样本太少，不过滤
   const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
   // 找出偏离最大的索引
@@ -40,5 +46,5 @@ function filterOutliersByMaxDeviation(values, thresholdRatio = 0.5) {
   }
   return values;
 }
-module.exports = { getYesterdayFormatted, isEmptyValue, filterOutliersByMaxDeviation}
+module.exports = { getYesterdayFormatted, isEmptyValue, filterOutliersByMaxDeviation, get_yesterday_formatted}
 

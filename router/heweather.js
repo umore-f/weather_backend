@@ -1,8 +1,8 @@
 const express = require('express')
 const router = express.Router()
 const axios = require('axios');
-const {getValidToken} = require('../../token')
-const {getYesterdayFormatted} = require('../../utils/helpers')
+const {getValidToken} = require('../token')
+const {getYesterdayFormatted} = require('../utils/helpers')
 router.get('/hf_city',async (req,res)=>{
     try{
         const { number } = req.query
@@ -97,6 +97,9 @@ router.get('/hf_last_days',async (req,res)=>{
         const { location } = req.query;
         // const [lat, lon] = location.split(',');
         // const correctLocation = `${lon},${lat}`; // 变成 "经度,纬度"
+        if (!location) {
+            return res.status(400).json({ error: '缺少 location 参数' });
+        }
         const date = getYesterdayFormatted()
         const token = await getValidToken();
         const response = await axios.get(`https://${process.env.API_HOST}/v7/historical/weather`, {

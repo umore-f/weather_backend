@@ -1,7 +1,7 @@
 // 从其他api那获取数据存到本地数据库
 const axios = require('axios'); // 用于发送HTTP请求
-const getLatLon = require('../controllers/weatherController')
-const { BASE_API, FIELDS_HOURS, FIELDS_DAYS } = require('./constants')
+const { getLatLon } = require('../../controllers/weatherController')
+const { BASE_API, FIELDS_HOURS, FIELDS_DAYS } = require('../../utils/constants')
 const {
   mapHfWeatherDataHours,
   mapTiWeatherDataHours,
@@ -11,8 +11,8 @@ const {
   mapHfWeatherDataDays1,
   mapVcWeatherDataDays0,
   mapVcWeatherDataDays1,
-} = require('./mapManager')
-const { HoursForecast, DailyWeather } = require('../models')
+} = require('../../utils/mapManager')
+const { HoursForecast, DailyWeather } = require('../../models')
 require('dotenv').config({ path: '../../.env' })
 // TI预测
 async function syncTiNextWeatherData(cityName) {
@@ -269,24 +269,18 @@ async function syncVcLastWeatherDataDay(cityName) {
             timeout: 10000,
             params: {
                 location: `${location.lon},${location.lat}`,
-            } // 设置30秒超时，防止请求卡死
+            } 
         });
-        // const fullUrl = axios.getUri(response.config);
         if (response.status == '200') {
-            console.log("1111111111",JSON.stringify(response.data.days[1], null, 2));
+            // console.log(JSON.stringify(response.data.days[1], null, 2));
 
             // 数据清洗与映射：将API数据转换为模型需要的格式
-            const vcMappedArray = response.data.days.map(item => mapVcWeatherDataDays0(item, {
+            const vcMappedArray = response.data.days[1].map(item => mapVcWeatherDataDays0(item, {
                 city: location.cityName,
                 lat: location.lat,
                 lon: location.lon,
                 source: 'visualcrossing',
             }))
-            // console.log("1111111111",JSON.stringify(vcMappedBigArray[0], null, 2));
-
-            // const vcMappedArray = vcMappedBigArray.flat()
-            // // const vcMappedArray = response.data.days[0].hours.map();
-            // console.log("22222222222$$$$$$$$$",vcMappedArray.length,JSON.stringify(vcMappedArray[0], null, 2));
             console.log(`正在将${cityName}VC的数据写入数据库...`);
             await DailyWeather.bulkCreate(vcMappedArray, {
                 updateOnDuplicate: FIELDS_DAYS 
@@ -294,11 +288,8 @@ async function syncVcLastWeatherDataDay(cityName) {
         } else {
             console.log("VCAPI返回错误");
         }
-       
-
+    
         // 3. 存入数据库
-        // 
-
 
         console.log(`成功将${cityName}VC的数据写入数据库...`);
 

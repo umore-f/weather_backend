@@ -22,9 +22,12 @@ const CITY_LIST = [
     '天津', '长沙', '青岛', '西安', '郑州', '合肥', '宁波', '无锡', '济南', '福州',
     '厦门', '东莞', '佛山', '大连', '沈阳', '昆明', '南昌', '哈尔滨', '泉州', '常州',
 ];
+// 需要计算的字段
+const FIELDS_CAL = ['tempMax', 'tempMin', 'humidity', 'precip', 'pressure']
 module.exports = {
   BASE_API,
   FIELDS_HOURS,
   CITY_LIST,
-  FIELDS_DAYS
+  FIELDS_DAYS,
+  FIELDS_CAL
 };

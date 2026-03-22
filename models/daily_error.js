@@ -4,7 +4,7 @@ const { Model, DataTypes } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class DailyError extends Model {
     static associate(models) {
-      // 定义关联（如有需要）
+      // 定义关联
     }
   }
 

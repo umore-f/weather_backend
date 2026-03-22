@@ -36,7 +36,7 @@ module.exports = (sequelize, DataTypes) => {
       comment: '经度'
     },
     forecast_time: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: false,
       primaryKey: true,           // 复合主键的一部分
       comment: '预报时间点（北京时间）'
