@@ -2,26 +2,34 @@ const { Op, where } = require("sequelize");
 const { DailyError } = require("../models");
 const { get_yesterday_formatted } = require("../utils/helpers");
 // 查找字段误差
-async function getSingleError(cityName) {
-  const date = get_yesterday_formatted();
-  const dailyError = await DailyError.findOne({
+async function getError(cityName,source) {
+  const dateStr = get_yesterday_formatted();
+  const DailyErrorList = await DailyError.findAll({
     where: {
-      name: cityName,
-      target_date: '2026-03-22',
+      city: cityName,
+      source: source,
+      target_date: {
+        [Op.like]: '2026-03-22',
+      },
     },
   });
-  if (!dailyError) {
-    return null;
+  if (DailyErrorList.length === 0) {
+    console.log("未找到记录");
+    return [];
   }
-  return {
-    cityName: cityName,
-    source: dailyError.source,
-    targetDate: dailyError.target_date,
-    errorType: dailyError.error_type,
-    errorValue: dailyError.error_value,
-  };
+  DailyErrorList.forEach((record, index) => {
+    console.log(`记录 ${index + 1}:`, record.get({ plain: true }));
+  });
+
+  return DailyErrorList.map((record) => ({
+    cityName: record.city,
+    source: record.source,
+    targetDate: record.target_date,
+    errorType: record.error_type,
+    errorValue: record.error_value,
+  }));
 }
-getSingleError('北京')
+getError('北京','QWeather')
 module.exports = {
-  getSingleError
+  getError
 };

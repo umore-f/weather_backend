@@ -77,5 +77,5 @@ function calculateNormalizedAverageError(errors, fieldConfigs) {
   if (totalWeight === 0) return 0;
   return totalNormalized / totalWeight;
 }
-module.exports = { getYesterdayFormatted, isEmptyValue, filterOutliersByMaxDeviation, get_yesterday_formatted, calculateNormalizedAverageError}
+module.exports = { getYesterdayFormatted, isEmptyValue, filterOutliersByMaxDeviation, get_yesterday_formatted, calculateNormalizedAverageError, errorToScore}
 
