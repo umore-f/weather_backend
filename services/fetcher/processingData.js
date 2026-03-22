@@ -1,5 +1,64 @@
 
+const { filterOutliersByMaxDeviation, isEmptyValue } = require('../../utils/helpers')
+const { getHistoryWeather } = require('../../controllers/weatherController')
+/**
+ * 获取某城市历史天气的统计平均值（用于拟合真实值）
+ * @param {string} cityName
+ * @returns {Promise<Object|null>} 返回平均值对象或 null
+ */
+async function getAvg(cityName) {
+  const weatherList = await getHistoryWeather(cityName); 
+  if (weatherList.length === 0) return null;
 
+  // 提取各字段的有效数值（原始有效值）
+  const extractValid = (field) => weatherList
+    .filter(item => !isEmptyValue(item[field]))
+    .map(item => Number(item[field]));
+
+  const validTemp = extractValid('temp');
+  const validTempMax = extractValid('tempMax');
+  const validTempMin = extractValid('tempMin');
+  const validHumidity = extractValid('humidity');
+  const validPrecip = extractValid('precip');
+  const validPressure = extractValid('pressure');
+
+  // 异常值过滤
+  const filteredTemp = filterOutliersByMaxDeviation(validTemp, 0.5);
+  const filteredTempMax = filterOutliersByMaxDeviation(validTempMax, 0.5);
+  const filteredTempMin = filterOutliersByMaxDeviation(validTempMin, 0.5);
+  const filteredHumidity = filterOutliersByMaxDeviation(validHumidity, 0.5);
+  const filteredPrecip = filterOutliersByMaxDeviation(validPrecip, 0.5);
+  const filteredPressure = filterOutliersByMaxDeviation(validPressure, 0.5);
+
+  const avg = (arr) => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
+
+  return {
+    cityName,
+    temp: Number(avg(filteredTemp).toFixed(2)),
+    tempMax: Number(avg(filteredTempMax).toFixed(2)),
+    tempMin: Number(avg(filteredTempMin).toFixed(2)),
+    humidity: Number(avg(filteredHumidity).toFixed(2)),
+    precip: Number(avg(filteredPrecip).toFixed(2)),
+    pressure: Number(avg(filteredPressure).toFixed(2)),
+    totalRecords: weatherList.length,
+    validCounts: {
+      temp: validTemp.length,
+      tempMax: validTempMax.length,
+      tempMin: validTempMin.length,
+      humidity: validHumidity.length,
+      precip: validPrecip.length,
+      pressure: validPressure.length,
+    },
+    filteredCounts: {
+      temp: filteredTemp.length,
+      tempMax: filteredTempMax.length,
+      tempMin: filteredTempMin.length,
+      humidity: filteredHumidity.length,
+      precip: filteredPrecip.length,
+      pressure: filteredPressure.length,
+    }
+  };
+}
 // ========================= 单日评估 =========================
 /**
  * 计算各预报源相对于真实值的误差（单日）总值
@@ -54,9 +113,9 @@ function evaluateFieldCredibility(field, realData, sources) {
     const pred = source[field];
     let error = null;
     if (pred !== null && pred !== undefined) {
-      error = Math.abs(pred - realValue);
+      error = Number(Math.abs(pred - realValue).toFixed(2));
     }
-    return { sourceName: source.sourceName, error };
+    return { city:source.cityName, target_date: source.forecastTime, source: source.source, error_value: error, error_type:field };
   }).filter(item => item.error !== null); // 只保留有预报值的源
 
   results.sort((a, b) => a.error - b.error);
@@ -171,5 +230,6 @@ function evaluateMultiDay(dailyReal, dailyForecasts, options = {}) {
 module.exports = {
   evaluateSources,
   evaluateFieldCredibility,
-  evaluateMultiDay
+  evaluateMultiDay,
+  getAvg,
 }

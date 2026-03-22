@@ -1,11 +1,9 @@
 const express = require('express')
-const heFengRouter = require('./router/he_feng')
 const getWeatherRouter = require('./router/index')
 const cors = require('cors');
 
 const app = express()
 app.use(cors());
-app.use(heFengRouter)
 app.use(getWeatherRouter)
 app.all('/*splat',(req,res)=>{
     res.send('<h1>404 Not Found</h1>')

@@ -23,7 +23,7 @@ const CITY_LIST = [
     '厦门', '东莞', '佛山', '大连', '沈阳', '昆明', '南昌', '哈尔滨', '泉州', '常州',
 ];
 // 需要计算的字段
-const FIELDS_CAL = ['tempMax', 'tempMin', 'humidity', 'precip', 'pressure']
+const FIELDS_CAL = ['tempMax', 'tempMin', 'temp', 'humidity', 'precip', 'pressure']
 module.exports = {
   BASE_API,
   FIELDS_HOURS,

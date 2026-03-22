@@ -2,13 +2,13 @@
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class DailyError extends Model {
+  class DailyCompreError extends Model {
     static associate(models) {
       // 定义关联
     }
   }
 
-  DailyError.init({
+  DailyCompreError.init({
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -21,17 +21,10 @@ module.exports = (sequelize, DataTypes) => {
     source: {
       type: DataTypes.STRING(20),
       allowNull: false,
-      validate: {
-        isIn: [['hefeng', 'tomorrow', 'vc']],
-      },
     },
     target_date: {
       type: DataTypes.DATEONLY,
       allowNull: false,
-    },
-    error_type: {
-      type: DataTypes.STRING(10),
-      defaultValue: 'temp_max',
     },
     error_value: {
       type: DataTypes.FLOAT,
@@ -39,17 +32,17 @@ module.exports = (sequelize, DataTypes) => {
     },
   }, {
     sequelize,
-    modelName: 'DailyError',
-    tableName: 'daily_errors',
+    modelName: 'DailyCompreError',
+    tableName: 'daily_compre_errors',
     timestamps: true,// 启用 createdAt 和 updatedAt
     underscored: true,               
     indexes: [
       {
         unique: true,
-        fields: ['city', 'source', 'target_date', 'error_type'],
+        fields: ['city', 'source', 'target_date'],
       },
     ],
   });
 
-  return DailyError;
+  return DailyCompreError;
 };
