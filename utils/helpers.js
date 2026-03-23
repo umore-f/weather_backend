@@ -58,24 +58,47 @@ function errorToScore(error, maxErrorBound = 1) {
  * @param {Object} fieldConfigs - 各字段的配置，包括 maxError（该字段允许的最大误差，用于归一化）和 weight（权重）
  * @returns {number} 综合平均误差（值越小越好，通常在0-1之间，但可能超过1如果误差超过maxError）
  */
-function calculateNormalizedAverageError(errors, fieldConfigs) {
-  let totalNormalized = 0;
+function calculateNormalizedAverageError({ errors, source, target_date, city }, fieldConfigs) {
+  let totalScore = 0;
   let totalWeight = 0;
 
   for (const [field, error] of Object.entries(errors)) {
-    const config = fieldConfigs[field];
-    if (!config) continue; // 没有配置的字段忽略
-    const { maxError, weight = 1 } = config;
-    if (maxError === undefined) continue;
+    let totalScore = 0;
+    let totalWeight = 0;
+    const fieldScores = {};
 
-    // 归一化：error / maxError
-    let normalized = (maxError === 0) ? (error === 0 ? 0 : 1) : (error / maxError);
-    totalNormalized += normalized * weight;
-    totalWeight += weight;
+    for (const [field, error] of Object.entries(errors)) {
+      const config = fieldConfigs[field];
+      if (!config) continue;
+      const { maxError, weight = 1 } = config;
+      // 使用线性映射计算该字段分数（假设 fieldErrorToScore 已定义）
+      const score = fieldErrorToScore(error, maxError);
+      fieldScores[field] = score;          // 记录单个字段分数
+      totalScore += score * weight;
+      totalWeight += weight;
+    }
+
+    if (totalWeight === 0) {
+      return { totalScore: 0, fieldScores: {} };
+    }
+    const total = totalScore / totalWeight;
+    // 可选：保留两位小数
+    const roundedTotal = Math.round(total * 100) / 100;
+    return { source, target_date, city, totalScore: roundedTotal, fieldScores, window_days:7 };
   }
-
-  if (totalWeight === 0) return 0;
-  return totalNormalized / totalWeight;
 }
-module.exports = { getYesterdayFormatted, isEmptyValue, filterOutliersByMaxDeviation, get_yesterday_formatted, calculateNormalizedAverageError, errorToScore}
+  /**
+   * 将单个字段的误差映射为分数（0-100）
+   * @param {number} error - 该字段的误差（例如平均绝对误差）
+   * @param {number} maxError - 最大可接受误差，误差 ≥ 此值得 0 分
+   * @returns {number} 分数（0-100，保留两位小数）
+   */
+  function fieldErrorToScore(error, maxError) {
+    if (maxError <= 0) return error === 0 ? 100 : 0;  // 边界处理
+    if (error >= maxError) return 0;
+    if (error <= 0) return 100;
+    const score = 100 * (1 - error / maxError);
+    return Math.round(score * 100) / 100; // 保留两位小数
+  }
+  module.exports = { getYesterdayFormatted, isEmptyValue, filterOutliersByMaxDeviation, get_yesterday_formatted, calculateNormalizedAverageError, errorToScore, fieldErrorToScore }
 

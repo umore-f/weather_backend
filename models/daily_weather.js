@@ -138,9 +138,9 @@ module.exports = (sequelize, DataTypes) => {
         fields: ['forecast_time']
       },
       {
-        name: 'unique_city_time_source',
+        name: 'unique_city_time_source_type',
         unique: true,
-        fields: ['city', 'forecast_time', 'source']
+        fields: ['city', 'forecast_time', 'source', 'type']
       }
     ]
   });

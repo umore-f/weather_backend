@@ -1,5 +1,5 @@
 const axios = require('axios'); // 用于发送HTTP请求
-const { getLatLon } = require('../../../controllers/weatherController')
+const { getLatLon } = require('../../../controllers/cityController')
 const { BASE_API, FIELDS_HOURS, FIELDS_DAYS } = require('../../../utils/constants')
 const {
   mapHfWeatherDataHours,

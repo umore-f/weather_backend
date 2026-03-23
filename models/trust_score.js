@@ -37,6 +37,10 @@ module.exports = (sequelize, DataTypes) => {
         max: 100,
       },
     },
+    target_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
     window_days: {
       type: DataTypes.INTEGER,
       defaultValue: 7,

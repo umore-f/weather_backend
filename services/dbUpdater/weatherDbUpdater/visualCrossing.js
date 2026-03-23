@@ -1,5 +1,5 @@
 const axios = require('axios'); // 用于发送HTTP请求
-const { getLatLon } = require('../../../controllers/weatherController')
+const { getLatLon } = require('../../../controllers/cityController')
 const { BASE_API, FIELDS_DAYS } = require('../../../utils/constants')
 const {
   mapVcWeatherDataDays0,
@@ -71,14 +71,14 @@ async function syncVcLastWeatherDataDay(cityName) {
             // console.log(JSON.stringify(response.data.days[1], null, 2));
 
             // 数据清洗与映射：将API数据转换为模型需要的格式
-            const vcMappedArray = response.data.days[1].map(item => mapVcWeatherDataDays0(item, {
+            const vcMappedArray = mapVcWeatherDataDays0(response.data.days[1], {
                 city: location.cityName,
                 lat: location.lat,
                 lon: location.lon,
                 source: 'visualcrossing',
-            }))
-            console.log(`正在将${cityName}VC的数据写入数据库...`);
-            await DailyWeather.bulkCreate(vcMappedArray, {
+            })
+            console.log(`正在将${cityName}VC的历史数据写入数据库...`);
+            await DailyWeather.bulkCreate([vcMappedArray], {
                 updateOnDuplicate: FIELDS_DAYS 
             });
         } else {
@@ -87,7 +87,7 @@ async function syncVcLastWeatherDataDay(cityName) {
     
         // 3. 存入数据库
 
-        console.log(`成功将${cityName}VC的数据写入数据库...`);
+        console.log(`成功将${cityName}VC的数据写入数据库`);
 
     } catch (error) {
         console.error('同步过程中发生错误:', error);

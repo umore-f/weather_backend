@@ -16,11 +16,11 @@ const  {
 
 async function fetchAllDays(cityName) {
     const promises = [
-        syncHfNextWeatherDatcityNameaDays(cityName),
-        syncHfLastWeatherDataDays(cityName),
-        syncTiNextWeatherData(cityName),
-        syncTiLastWeatherData(cityName),
-        syncVcNextWeatherDataDay(cityName),
+        // syncHfNextWeatherDataDays(cityName),
+        // syncHfLastWeatherDataDays(cityName),
+        // syncTiNextWeatherData(cityName),
+        // syncTiLastWeatherData(cityName),
+        // syncVcNextWeatherDataDay(cityName),
         syncVcLastWeatherDataDay(cityName),
     ]
     const results = await Promise.all(promises)

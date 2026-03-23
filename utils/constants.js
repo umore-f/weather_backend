@@ -17,13 +17,18 @@ const FIELDS_DAYS = [
 // const CITY_LIST = [
 //     '北京'
 // ];
-const CITY_LIST = [
+const CITY_LIST1 = [
     '北京', '上海', '广州', '深圳', '杭州', '成都', '南京', '武汉', '重庆', '苏州',
     '天津', '长沙', '青岛', '西安', '郑州', '合肥', '宁波', '无锡', '济南', '福州',
     '厦门', '东莞', '佛山', '大连', '沈阳', '昆明', '南昌', '哈尔滨', '泉州', '常州',
 ];
+const CITY_LIST = [
+    '北京'
+];
 // 需要计算的字段
 const FIELDS_CAL = ['tempMax', 'tempMin', 'temp', 'humidity', 'precip', 'pressure']
+// 数据源
+const SOURCE_LIST = ['QWeather','tomorrow.io','visualcrossing']
 const FIELDCONFIGS = {
   temp:     { maxError: 3, weight: 1 },   // 温度误差边界3°C
   tempMax:  { maxError: 3, weight: 1 },
@@ -38,5 +43,6 @@ module.exports = {
   CITY_LIST,
   FIELDS_DAYS,
   FIELDS_CAL,
-  FIELDCONFIGS
+  FIELDCONFIGS,
+  SOURCE_LIST
 };

@@ -1,5 +1,5 @@
 const axios = require('axios'); 
-const { getLatLon } = require('../../../controllers/weatherController')
+const { getLatLon } = require('../../../controllers/cityController')
 const { BASE_API, FIELDS_HOURS, FIELDS_DAYS } = require('../../../utils/constants')
 const {
   mapTiWeatherDataHours,

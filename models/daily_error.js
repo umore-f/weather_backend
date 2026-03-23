@@ -47,6 +47,7 @@ module.exports = (sequelize, DataTypes) => {
       {
         unique: true,
         fields: ['city', 'source', 'target_date', 'error_type'],
+        // fields: ['target_date'],
       },
     ],
   });
