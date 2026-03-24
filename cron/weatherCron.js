@@ -12,9 +12,9 @@ const { setErrors, setScore } = require('../services/dbUpdater/errorDbUpdater/er
  */
 function startScheduler(options = {}) {
     const {
-        cronCities = process.env.CRON_CITIES || '30 14 * * *',
-        cronErrors = process.env.CRON_ERRORS || '30 16 * * *',
-        cronHours = process.env.CRON_ERRORS || '0 */2 * * *',
+        cronCities = process.env.CRON_CITIES || '30 2 * * *',
+        cronErrors = process.env.CRON_ERRORS || '30 4 * * *',
+        cronHours = process.env.CRON_ERRORS || '0 */6 * * *',
         timezone = process.env.TZ || 'Asia/Shanghai',
     } = options;
 

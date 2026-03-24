@@ -1,5 +1,5 @@
 const { getError, getCompreErrorFromDb, } = require('./controllers/errorScore')
-const { getSingleError,getCompreError, setErrors, getSingleScore } = require('./services/dbUpdater/errorDbUpdater/errorDbUpdater')
+const { getSingleError,getCompreError, setErrors, getSingleScore, setScore } = require('./services/dbUpdater/errorDbUpdater/errorDbUpdater')
 const { updateAllCities } = require('./services/dbUpdater/weatherDbUpdater/index')
 
 
@@ -18,3 +18,4 @@ const { updateAllCities } = require('./services/dbUpdater/weatherDbUpdater/index
 // getSingleScore('北京','QWeather')
 // updateAllCities()
 setErrors()
+setScore()

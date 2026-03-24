@@ -103,10 +103,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(20),
       comment: '露点温度或其他'    
     },
-    data_version: {
-      type: DataTypes.STRING(20),
-      comment: '数据版本'
-    },
+    // data_version: {
+    //   type: DataTypes.STRING(20),
+    //   comment: '数据版本'
+    // },
     is_valid: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
