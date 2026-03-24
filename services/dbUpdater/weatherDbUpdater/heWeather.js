@@ -32,7 +32,7 @@ async function syncHfWeatherDataHours(cityName) {
             // 3. 存入数据库
             const hfMappedArray = response.data.hourly.map(item => mapHfWeatherDataHours(item, commonOptions));
             // console.log("!!!!!!!!!",JSON.stringify(hfMappedArray[0], null, 2));
-            await WeatherForecast.bulkCreate(hfMappedArray, {
+            await HoursForecast.bulkCreate(hfMappedArray, {
                 updateOnDuplicate: FIELDS_HOURS 
             });
             

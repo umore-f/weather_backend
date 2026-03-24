@@ -1,14 +1,14 @@
 const express = require('express')
 const getWeatherRouter = require('./router/index')
 const cors = require('cors');
-
+const { startScheduler } = require('./cron/weatherCron')
 const app = express()
 app.use(cors());
 app.use(getWeatherRouter)
 app.all('/*splat',(req,res)=>{
     res.send('<h1>404 Not Found</h1>')
 })
-
+startScheduler();
 app.listen(9000,()=>{
     console.log("天气系统服务器启动中......");
     // syncWeatherData() //启动服务器的时候立即执行一次,获取数据

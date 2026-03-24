@@ -1,20 +1,13 @@
 const {
     evaluateFieldCredibility,
     getAvg,
-    evaluateSources,
 } = require("../../fetcher/processingData");
-const { getError, getCompreErrorFromDb } = require("../../../controllers/errorScore");
+const { getError } = require("../../../controllers/errorScore");
 const { CITY_LIST, FIELDS_CAL, FIELDCONFIGS, SOURCE_LIST } = require("../../../utils/constants");
 const { getNextWeather } = require("../../../controllers/weatherController");
-const { DailyError, DailyCompreError, TrustScore } = require("../../../models");
+const { DailyError, TrustScore } = require("../../../models");
 const {
-    getYesterdayFormatted,
-    isEmptyValue,
-    filterOutliersByMaxDeviation,
-    get_yesterday_formatted,
     calculateNormalizedAverageError,
-    errorToScore,
-    fieldErrorToScore
 } = require("../../../utils/helpers");
 require("dotenv").config({ path: "../../.env" });
 
@@ -32,14 +25,14 @@ async function getSingleError(cityName) {
 
         allErrors.push(...singleError);
     }
-    console.log(
-        "!!!!!!!!!!!!!!!真实值:",
-        realData,
-        "!!!!!!!!!!!!预测值:",
-        forecastData,
-        "!!!!!!!!!!!!!!误差值",
-        allErrors,
-    );
+    // console.log(
+    //     "!!!!!!!!!!!!!!!真实值:",
+    //     realData,
+    //     "!!!!!!!!!!!!预测值:",
+    //     forecastData,
+    //     "!!!!!!!!!!!!!!误差值",
+    //     allErrors,
+    // );
     // console.log('!!!!!!!!!!!!!!误差值',allErrors);
     await DailyError.bulkCreate(allErrors, { updateOnDuplicate: ['error_value'] });
 }
@@ -53,7 +46,6 @@ async function getScore(cityName, source) {
         error_value: item.errorValue
     }))
     const realDataErrors = errors.reduce((acc, cur) => {
-        // 第一次迭代时初始化 acc
         if (!acc.source) {
             acc.source = cur.source;
             acc.target_date = cur.target_date;
@@ -66,15 +58,20 @@ async function getScore(cityName, source) {
 
     const compreError = calculateNormalizedAverageError(realDataErrors, FIELDCONFIGS);
     const result = transformToScoreRecords(compreError)
-    console.log("!!!!!!!!!!!", result);
+    // console.log("!!!!!!!!!!!", result);
 
     await TrustScore.bulkCreate(result, { updateOnDuplicate: ['score'] });
 }
-async function getErrors() {
+async function setScore() {
     for (const source of SOURCE_LIST) {
         for (const city of CITY_LIST) {
             await getScore(city, source);
         }
+    }
+}
+async function setErrors() {
+    for (const city of CITY_LIST) {
+        await getSingleError(city);
     }
 }
 function transformToScoreRecords(data) {
@@ -112,7 +109,8 @@ function transformToScoreRecords(data) {
 module.exports = {
     getSingleError,
     getScore,
-    getErrors,
+    setErrors,
+    setScore
 }
 
 // getSingleError("北京");
