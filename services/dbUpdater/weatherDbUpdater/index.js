@@ -37,13 +37,13 @@ async function fetchAllHours(cityName) {
     const results = await Promise.all(promises)
     console.log(results)
 }
-// 创建限流器：每小时最多 15 次，同时最多并发 1 个请求
+// 创建限流器：每小时最多 20 次，同时最多并发 1 个请求
 const limiter = new Bottleneck({
-    reservoir: 15,                     // 初始令牌数（每小时刷新）
-    reservoirRefreshAmount: 15,        // 每小时补充 15 个令牌
+    reservoir: 20,                     // 初始令牌数（每小时刷新）
+    reservoirRefreshAmount: 20,        // 每小时补充 20 个令牌
     reservoirRefreshInterval: 60 * 60 * 1000, // 刷新间隔 1 小时
     maxConcurrent: 1,                  // 串行执行，避免并发抢占
-    minTime: 100,                      // 可选：两次调用之间最小间隔（毫秒）
+    minTime: 1000,                      // 可选：两次调用之间最小间隔（毫秒）
 });
 
 // 只包装受限制的两个函数

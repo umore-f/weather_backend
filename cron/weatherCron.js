@@ -12,8 +12,8 @@ const { setErrors, setScore } = require('../services/dbUpdater/errorDbUpdater/er
  */
 function startScheduler(options = {}) {
     const {
-        cronCities = process.env.CRON_CITIES || '30 2 * * *',
-        cronErrors = process.env.CRON_ERRORS || '30 4 * * *',
+        cronCities = process.env.CRON_CITIES || '00 3 * * *',
+        cronErrors = process.env.CRON_ERRORS || '00 5 * * *',
         cronHours = process.env.CRON_ERRORS || '0 */6 * * *',
         timezone = process.env.TZ || 'Asia/Shanghai',
     } = options;
@@ -33,7 +33,8 @@ function startScheduler(options = {}) {
     cron.schedule(cronErrors, async () => {
         console.log(`[${new Date().toISOString()}] 定时任务触发：开始更新错误数据和评分`);
         try {
-            await Promise.all([setErrors(), setScore()]); // 并发执行，或按顺序：await setErrors(); await setScore();
+            await setErrors(); 
+            await setScore();
             console.log(`[${new Date().toISOString()}] 错误数据和评分更新完成`);
         } catch (error) {
             console.error(`[${new Date().toISOString()}] 错误数据和评分更新失败:`, error);
