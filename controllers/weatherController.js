@@ -129,11 +129,12 @@ router.get('/current', async (req, res) => {
 router.get('/days', async (req, res) => {
   try {
     let { date, source } = req.query;
-    
+    // console.log("!!!!!!!!",req.query['date[start]'],req.query['location[]'],req.query['source[]']);
+    console.log("@@@@@@@@@",req.query.source);
     // ---------- 兼容多种 location 传参方式 ----------
     let locations = [];
-
-    // 1. 尝试 location 字符串（逗号分隔）
+    
+    // location 字符串（逗号分隔）
     if (req.query.location) {
       if (typeof req.query.location === 'string') {
         locations = req.query.location.split(',').map(s => s.trim()).filter(Boolean);
@@ -141,7 +142,7 @@ router.get('/days', async (req, res) => {
         locations = req.query.location.map(s => s.trim()).filter(Boolean);
       }
     }
-    // 2. 尝试 location[] 数组（axios 传数组时自动生成）
+    // location[] 数组（axios 传数组时自动生成）
     if (!locations.length && req.query['location[]']) {
       const arr = req.query['location[]'];
       if (typeof arr === 'string') locations = [arr];
@@ -156,6 +157,8 @@ router.get('/days', async (req, res) => {
     if (req.query.source) {
       if (typeof req.query.source === 'string') {
         sources = req.query.source.split(',').map(s => s.trim()).filter(Boolean);
+        console.log("FESFSFSEFESFCVD##########",sources);
+        
       } else if (Array.isArray(req.query.source)) {
         sources = req.query.source.map(s => s.trim()).filter(Boolean);
       }
@@ -170,10 +173,14 @@ router.get('/days', async (req, res) => {
 
     // ---------- 日期处理 ----------
     let startDate, endDate;
-    if (!date) {
+    if (!date && !req.query['date[start]']) {
       startDate = dayjs().format('YYYY-MM-DD');
       endDate = dayjs().add(5, 'day').format('YYYY-MM-DD');
-    } else {
+    } else if (req.query['date[start]'].length !== 0){
+      startDate = req.query['date[start]']
+      endDate = req.query['date[end]']
+    } 
+    else {
       const parsed = dayjs(date);
       if (!parsed.isValid()) {
         return res.status(400).json({ code: 400, message: '日期格式错误，请使用 YYYY-MM-DD' });

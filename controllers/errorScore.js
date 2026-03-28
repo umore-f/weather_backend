@@ -3,8 +3,9 @@ const express = require("express");
 const { DailyError, TrustScore } = require("../models");
 const { get_yesterday_formatted } = require("../utils/helpers");
 const router = express.Router();
+const dayjs = require('dayjs');
 // 查找字段误差
-async function getError(cityName,source) {
+async function getError(cityName, source) {
   const dateStr = get_yesterday_formatted();
   const DailyErrorList = await DailyError.findAll({
     where: {
@@ -34,31 +35,69 @@ async function getError(cityName,source) {
 router.get('/errors', async (req, res) => {
   try {
     let { location, date, source } = req.query;
-    location = location || '北京';
-    source = source || 'QWeather';
+    let locations = [];
 
+    // location 字符串（逗号分隔）
+    if (req.query.location) {
+      if (typeof req.query.location === 'string') {
+        locations = req.query.location.split(',').map(s => s.trim()).filter(Boolean);
+      } else if (Array.isArray(req.query.location)) {
+        locations = req.query.location.map(s => s.trim()).filter(Boolean);
+      }
+    }
+    // location[] 数组（axios 传数组时自动生成）
+    if (!locations.length && req.query['location[]']) {
+      const arr = req.query['location[]'];
+      if (typeof arr === 'string') locations = [arr];
+      else if (Array.isArray(arr)) locations = arr;
+      locations = locations.map(s => s.trim()).filter(Boolean);
+    }
+    // 3. 默认
+    if (!locations.length) locations = ['北京'];
+
+    // ---------- 处理 source 同理（可选） ----------
+    let sources = [];
+    if (req.query.source) {
+      if (typeof req.query.source === 'string') {
+        sources = req.query.source.split(',').map(s => s.trim()).filter(Boolean);
+      } else if (Array.isArray(req.query.source)) {
+        sources = req.query.source.map(s => s.trim()).filter(Boolean);
+      }
+    }
+    if (req.query['source[]']) {
+      const arr = req.query['source[]'];
+      if (typeof arr === 'string') sources = [arr];
+      else if (Array.isArray(arr)) sources = arr;
+      sources = sources.map(s => s.trim()).filter(Boolean);
+    }
+    if (!sources.length) sources = ['QWeather'];
+
+    // ---------- 日期处理 ----------
     let startDate, endDate;
-    if (!date) {
-      // 默认查询今天到未来7天
-      startDate = dayjs().format('YYYY-MM-DD');
-      endDate = dayjs().add(7, 'day').format('YYYY-MM-DD');
-    } else {
-      // 用户传入指定日期（格式 YYYY-MM-DD），只查当天
+    if (!date && !req.query['date[start]']) {
+      // 默认查询最近7天（从昨天开始往前推6天，共7天）
+      startDate = dayjs().subtract(1, 'day').format('YYYY-MM-DD'); // 昨天
+      endDate = dayjs().subtract(6, 'day').format('YYYY-MM-DD');   // 6天前
+    } else if (req.query['date[start]'].length !== 0) {
+      endDate = req.query['date[start]']
+      startDate = req.query['date[end]']
+    }
+    else {
       const parsed = dayjs(date);
       if (!parsed.isValid()) {
         return res.status(400).json({ code: 400, message: '日期格式错误，请使用 YYYY-MM-DD' });
       }
       startDate = parsed.format('YYYY-MM-DD');
-      endDate = startDate; // 同一天
+      endDate = startDate;
     }
 
     const errorsList = await DailyError.findAll({
       where: {
-        city: location,
-        source: source,
+        city: { [Op.in]: locations },
+        source: { [Op.in]: sources },
         target_date: {
-          [Op.gte]: startDate,
-          [Op.lte]: endDate
+          [Op.gte]: endDate,
+          [Op.lte]: startDate
         }
       },
       order: [['target_date', 'ASC']]
@@ -73,31 +112,68 @@ router.get('/errors', async (req, res) => {
 router.get('/score', async (req, res) => {
   try {
     let { location, date, source } = req.query;
-    location = location || '北京';
-    source = source || 'QWeather';
+    let locations
+    // location 字符串（逗号分隔）
+    if (req.query.location) {
+      if (typeof req.query.location === 'string') {
+        locations = req.query.location.split(',').map(s => s.trim()).filter(Boolean);
+      } else if (Array.isArray(req.query.location)) {
+        locations = req.query.location.map(s => s.trim()).filter(Boolean);
+      }
+    }
+    // location[] 数组（axios 传数组时自动生成）
+    if (req.query['location[]']) {
+      const arr = req.query['location[]'];
+      if (typeof arr === 'string') locations = [arr];
+      else if (Array.isArray(arr)) locations = arr;
+      locations = locations.map(s => s.trim()).filter(Boolean);
+    }
+    // 3. 默认
+    if (!locations.length) locations = ['北京'];
 
+    // ---------- 处理 source 同理（可选） ----------
+    let sources = [];
+    if (req.query.source) {
+      if (typeof req.query.source === 'string') {
+        sources = req.query.source.split(',').map(s => s.trim()).filter(Boolean);
+      } else if (Array.isArray(req.query.source)) {
+        sources = req.query.source.map(s => s.trim()).filter(Boolean);
+      }
+    }
+    if (!sources.length && req.query['source[]']) {
+      const arr = req.query['source[]'];
+      if (typeof arr === 'string') sources = [arr];
+      else if (Array.isArray(arr)) sources = arr;
+      sources = sources.map(s => s.trim()).filter(Boolean);
+    }
+    if (!sources.length) sources = ['QWeather'];
+
+    // ---------- 日期处理 ----------
     let startDate, endDate;
-    if (!date) {
-      // 默认查询今天到未来7天
-      startDate = dayjs().format('YYYY-MM-DD');
-      endDate = dayjs().add(7, 'day').format('YYYY-MM-DD');
-    } else {
-      // 用户传入指定日期（格式 YYYY-MM-DD），只查当天
+    if (!date && !req.query['date[start]']) {
+      // 默认查询最近7天（从昨天开始往前推6天，共7天）
+      startDate = dayjs().subtract(1, 'day').format('YYYY-MM-DD'); // 昨天
+      endDate = dayjs().subtract(6, 'day').format('YYYY-MM-DD');   // 6天前
+    } else if (req.query['date[start]'].length !== 0) {
+      endDate = req.query['date[start]']
+      startDate = req.query['date[end]']
+    }
+    else {
       const parsed = dayjs(date);
       if (!parsed.isValid()) {
         return res.status(400).json({ code: 400, message: '日期格式错误，请使用 YYYY-MM-DD' });
       }
       startDate = parsed.format('YYYY-MM-DD');
-      endDate = startDate; // 同一天
+      endDate = startDate;
     }
 
     const scoreList = await TrustScore.findAll({
       where: {
-        city: location,
-        source: source,
+        city: { [Op.in]: locations },
+        source: { [Op.in]: sources },
         target_date: {
-          [Op.gte]: startDate,
-          [Op.lte]: endDate
+          [Op.gte]: endDate,
+          [Op.lte]: startDate
         }
       },
       order: [['target_date', 'ASC']]
