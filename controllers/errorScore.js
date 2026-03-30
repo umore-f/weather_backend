@@ -114,11 +114,11 @@ router.get('/score', async (req, res) => {
     let { location, date, source } = req.query;
     let locations
     // location 字符串（逗号分隔）
-    if (req.query.location) {
-      if (typeof req.query.location === 'string') {
-        locations = req.query.location.split(',').map(s => s.trim()).filter(Boolean);
-      } else if (Array.isArray(req.query.location)) {
-        locations = req.query.location.map(s => s.trim()).filter(Boolean);
+    if (location) {
+      if (typeof location === 'string') {
+        locations = location.split(',').map(s => s.trim()).filter(Boolean);
+      } else if (Array.isArray(location)) {
+        locations = location.map(s => s.trim()).filter(Boolean);
       }
     }
     // location[] 数组（axios 传数组时自动生成）
@@ -133,11 +133,11 @@ router.get('/score', async (req, res) => {
 
     // ---------- 处理 source 同理（可选） ----------
     let sources = [];
-    if (req.query.source) {
-      if (typeof req.query.source === 'string') {
-        sources = req.query.source.split(',').map(s => s.trim()).filter(Boolean);
-      } else if (Array.isArray(req.query.source)) {
-        sources = req.query.source.map(s => s.trim()).filter(Boolean);
+    if (source) {
+      if (typeof source === 'string') {
+        sources = source.split(',').map(s => s.trim()).filter(Boolean);
+      } else if (Array.isArray(source)) {
+        sources = source.map(s => s.trim()).filter(Boolean);
       }
     }
     if (!sources.length && req.query['source[]']) {
@@ -150,15 +150,24 @@ router.get('/score', async (req, res) => {
 
     // ---------- 日期处理 ----------
     let startDate, endDate;
-    if (!date && !req.query['date[start]']) {
-      // 默认查询最近7天（从昨天开始往前推6天，共7天）
-      startDate = dayjs().subtract(1, 'day').format('YYYY-MM-DD'); // 昨天
-      endDate = dayjs().subtract(6, 'day').format('YYYY-MM-DD');   // 6天前
-    } else if (req.query['date[start]'].length !== 0) {
-      endDate = req.query['date[start]']
-      startDate = req.query['date[end]']
+    const startParam = req.query['date[start]'];
+    const endParam = req.query['date[end]'];
+
+    if (startParam && endParam) {
+      const start = dayjs(startParam);
+      const end = dayjs(endParam);
+      if (!start.isValid() || !end.isValid()) {
+        return res.status(400).json({ code: 400, message: '日期格式错误，请使用 YYYY-MM-DD' });
+      }
+      if (start.isBefore(end)) {
+        endDate = start.format('YYYY-MM-DD');
+        startDate = end.format('YYYY-MM-DD');
+      } else {
+        endDate = end.format('YYYY-MM-DD');
+        startDate = start.format('YYYY-MM-DD');
+      }
     }
-    else {
+    else if (date) {
       const parsed = dayjs(date);
       if (!parsed.isValid()) {
         return res.status(400).json({ code: 400, message: '日期格式错误，请使用 YYYY-MM-DD' });
@@ -166,6 +175,11 @@ router.get('/score', async (req, res) => {
       startDate = parsed.format('YYYY-MM-DD');
       endDate = startDate;
     }
+    else {
+      startDate = dayjs().subtract(1, 'day').format('YYYY-MM-DD');   // 昨天
+      endDate = dayjs().subtract(6, 'day').format('YYYY-MM-DD');     // 6 天前
+    }
+
 
     const scoreList = await TrustScore.findAll({
       where: {

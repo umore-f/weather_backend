@@ -40,12 +40,12 @@ const FIELDS_CAL = ['tempMax', 'tempMin', 'temp', 'humidity', 'precip', 'pressur
 // 数据源
 const SOURCE_LIST = ['QWeather','tomorrow.io','visualcrossing']
 const FIELDCONFIGS = {
-  temp:     { maxError: 3, weight: 1 },   // 温度误差边界3°C
-  tempMax:  { maxError: 3, weight: 1 },
-  tempMin:  { maxError: 3, weight: 1 },
-  humidity: { maxError: 15, weight: 1 },  // 湿度误差边界15%
-  precip:   { maxError: 2, weight: 1 },   // 降水误差边界2mm
-  pressure: { maxError: 15, weight: 1 }   // 气压误差边界15hPa
+  temp:     { maxError: 4, weight: 1 },   // 温度误差边界3°C
+  tempMax:  { maxError: 4, weight: 1 },
+  tempMin:  { maxError: 4, weight: 1 },
+  humidity: { maxError: 20, weight: 1 },  // 湿度误差边界15%
+  precip:   { maxError: 3, weight: 1 },   // 降水误差边界2mm
+  pressure: { maxError: 20, weight: 1 }   // 气压误差边界15hPa
 };
 module.exports = {
   BASE_API,

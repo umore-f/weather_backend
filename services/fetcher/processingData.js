@@ -98,7 +98,7 @@ function evaluateSources(realData, sources, weights = null) {
 }
 /**
  * 评估单个字段的可信度（单日）单个字段的误差值
- * @param {string} field - 字段名，如 'temp'
+ * @param {string} field - 字段名
  * @param {Object} realData - 真实值（需包含该字段）
  * @param {Array} sources - 预报源列表
  * @returns {Array} 按误差升序排列的预报源列表，每个元素包含 sourceName 和 error
