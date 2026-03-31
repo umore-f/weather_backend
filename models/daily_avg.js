@@ -18,21 +18,9 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(50),
       allowNull: false,
     },
-    target_date: {
-      type: DataTypes.DATEONLY,
-      allowNull: false,
-    },
-    error_type: {
-      type: DataTypes.STRING(10),
-      defaultValue: 'temp_max',
-    },
     error_value: {
       type: DataTypes.FLOAT,
-      allowNull: false,
-    },
-    count: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
   }, {
     sequelize,
@@ -43,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
     indexes: [
       {
         unique: true,
-        fields: ['city', 'source', 'target_date', 'error_type'],
+        fields: ['city', 'source', 'target_date'],
 
       },
     ],

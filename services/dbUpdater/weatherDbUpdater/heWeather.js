@@ -20,7 +20,6 @@ async function syncHfWeatherDataHours(cityName) {
             } // 设置10秒超时，防止请求卡死
         });
         if (response.data.code == '200') {
-            // console.log("!!!!!!!!!",JSON.stringify(response.data, null, 2));
             const commonOptions = {
                 city: location.cityName,
                 source: 'QWeather',
@@ -28,19 +27,18 @@ async function syncHfWeatherDataHours(cityName) {
                 lon: location.lon,
             };
             // 数据清洗与映射：将API数据转换为模型需要的格式
-            console.log(`正在将${cityName}和风的数据写入数据库...`);
+            console.log(`正在将${cityName}和风小时数据写入数据库...`);
             // 3. 存入数据库
             const hfMappedArray = response.data.hourly.map(item => mapHfWeatherDataHours(item, commonOptions));
-            // console.log("!!!!!!!!!",JSON.stringify(hfMappedArray[0], null, 2));
             await HoursForecast.bulkCreate(hfMappedArray, {
                 updateOnDuplicate: FIELDS_HOURS 
             });
             
         } else {
-            console.log("和风API返回错误");
+            console.log("和风小时API返回错误");
         }
        
-        console.log(`成功将${cityName}和风的数据写入数据库...`);
+        console.log(`成功将${cityName}和风小时数据写入数据库`);
 
     } catch (error) {
         console.error('同步过程中发生错误:', error);
@@ -59,7 +57,6 @@ async function syncHfNextWeatherDataDays(cityName) {
             } // 设置10秒超时，防止请求卡死
         });
         if (response.data.code == '200') {
-            // console.log("!!!!!!!!!",JSON.stringify(response.data, null, 2));
             const commonOptions = {
                 city: location.cityName,
                 source: 'QWeather',
@@ -67,19 +64,18 @@ async function syncHfNextWeatherDataDays(cityName) {
                 lon: location.lon,
             };
             // 数据清洗与映射：将API数据转换为模型需要的格式
-            console.log(`正在将${cityName}和风的数据写入数据库...`);
+            console.log(`正在将${cityName}和风7天数据写入数据库...`);
             // 3. 存入数据库
             const hfMappedArray = response.data.daily.map(item => mapHfWeatherDataDays1(item, commonOptions));
-            // console.log("!!!!!!!!!",JSON.stringify(hfMappedArray[0], null, 2));
             await DailyWeather.bulkCreate(hfMappedArray, {
                 updateOnDuplicate: FIELDS_HOURS 
             });
             
         } else {
-            console.log("和风API返回错误");
+            console.log("和风7天API返回错误");
         }
        
-        console.log(`成功将${cityName}和风的数据写入数据库...`);
+        console.log(`成功将${cityName}和风7天数据写入数据库...`);
 
     } catch (error) {
         console.error('同步过程中发生错误:', error);
@@ -98,7 +94,6 @@ async function syncHfLastWeatherDataDays(cityName) {
             } // 设置10秒超时，防止请求卡死
         });
         if (response.data.code == '200') {
-            // console.log("!!!!!!!!!",JSON.stringify(response.data, null, 2));
             const commonOptions = {
                 city: location.cityName,
                 source: 'QWeather',
@@ -106,7 +101,7 @@ async function syncHfLastWeatherDataDays(cityName) {
                 lon: location.lon,
             };
             // 数据清洗与映射：将API数据转换为模型需要的格式
-            console.log(`正在将${cityName}和风的数据写入数据库...`);
+            console.log(`正在将${cityName}和风历史数据写入数据库...`);
             // 3. 存入数据库
             const hfMappedArray = mapHfWeatherDataDays0(response.data.weatherDaily, commonOptions);
             // console.log("!!!!!!!!!",JSON.stringify(hfMappedArray[0], null, 2));
@@ -115,10 +110,10 @@ async function syncHfLastWeatherDataDays(cityName) {
             });
             
         } else {
-            console.log("和风API返回错误");
+            console.log("和风历史API返回错误");
         }
        
-        console.log(`成功将${cityName}和风的数据写入数据库...`);
+        console.log(`成功将${cityName}和风历史数据写入数据库...`);
 
     } catch (error) {
         console.error('同步过程中发生错误:', error);

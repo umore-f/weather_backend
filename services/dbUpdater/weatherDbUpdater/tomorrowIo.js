@@ -13,7 +13,6 @@ async function syncTiNextWeatherData(cityName) {
     try {
         // 从外部API获取数据
         const location = await getLatLon(cityName)
-        console.log('正在从tomorrow.io获取数据...');
         const response = await axios.get(`${BASE_API}/ti_next_hours_days`, {
             timeout: 10000,
             params: {
@@ -31,28 +30,28 @@ async function syncTiNextWeatherData(cityName) {
             const tiMappedArrayHours = response.data.timelines.hourly.map(item => mapTiWeatherDataHours(item, commonOptions));
             const tiMappedArrayDays = response.data.timelines.daily.map(item => mapTiWeatherDataDays1(item, commonOptions));
             // 存入数据库
-            console.log(`正在将${cityName}tomorrow.io的数据写入数据库...`);
-            console.log("!!!!!!!!!",JSON.stringify(tiMappedArrayDays[0], null, 2));
+            console.log(`正在将${cityName}tomorrow.io,5天120小时数据写入数据库...`);
             await HoursForecast.bulkCreate(tiMappedArrayHours, {
                 updateOnDuplicate: FIELDS_HOURS
             });
             await DailyWeather.bulkCreate(tiMappedArrayDays, {
                 updateOnDuplicate: FIELDS_DAYS
             });
-            // console.log("",Object.keys(DailyWeather.rawAttributes));
-            console.log(`成功将${cityName}tomorrow.io的数据写入数据库...`);
+        } else {
+            console.log("tomorrow.ioAPI返回错误");
+            
         }
-        // console.log("!!!!!!!!!",JSON.stringify(response.data.timelines.hourly[0], null, 2));
+        console.log(`成功将${cityName}tomorrow.io,5天120小时数据写入数据库`);
     } catch (error) {
         console.error('同步过程中发生错误:', error);
     }
+    
 }
 // TI历史
 async function syncTiLastWeatherData(cityName) {
     try {
         // 从外部API获取数据
         const location = await getLatLon(cityName)
-        console.log('正在从tomorrow.io获取数据...');
         const response = await axios.get(`${BASE_API}/ti_last_hours_days`, {
             timeout: 10000,
             params: {
@@ -67,17 +66,17 @@ async function syncTiLastWeatherData(cityName) {
         };
         if (response.status == 200) {
             // 数据清洗与映射：将API数据转换为模型需要的格式
-            // console.log("!!!!!!!!!",JSON.stringify(response.data.timelines.daily[0], null, 2));
             const tiMappedArrayDays = mapTiWeatherDataDays0(response.data.timelines.daily[0], commonOptions);
             // 存入数据库
-            console.log(`正在将${cityName}tomorrow.io的数据写入数据库...`);
+            console.log(`正在将${cityName}tomorrow.io历史数据写入数据库...`);
             await DailyWeather.bulkCreate([tiMappedArrayDays], {
                 updateOnDuplicate: FIELDS_DAYS
             });
-            console.log(`成功将${cityName}tomorrow.io的数据写入数据库...`);
-            console.log("!!!!!!!!!",JSON.stringify(tiMappedArrayDays, null, 2));
+            
+        } else {
+            console.log("tomorrow.ioAPI返回错误");
         }
-        
+        console.log(`成功将${cityName}tomorrow.io历史数据写入数据库`);
     } catch (error) {
         console.error('同步过程中发生错误:', error);
     }
