@@ -13,5 +13,4 @@ app.all('/*splat',(req,res)=>{
 startScheduler();
 app.listen(9000,()=>{
     console.log("天气系统服务器启动中......");
-    // syncWeatherData() //启动服务器的时候立即执行一次,获取数据
 })

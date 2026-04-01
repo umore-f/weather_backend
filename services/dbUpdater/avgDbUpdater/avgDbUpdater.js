@@ -1,36 +1,33 @@
-const {
-    evaluateFieldCredibility,
-    getAvg,
-} = require("../../fetcher/processingData");
-const { getError } = require("../../../controllers/errorScore");
-const { CITY_LIST, FIELDS_CAL, FIELDCONFIGS, SOURCE_LIST } = require("../../../utils/constants");
+const { getAvg } = require("../../fetcher/processingData");
+const { CITY_LIST } = require("../../../utils/constants");
 const { DailyAvg } = require("../../../models");
 const {
-    calculateNormalizedAverageError,
+    get_yesterday_formatted,
 } = require("../../../utils/helpers");
 require("dotenv").config({ path: "../../.env" });
 
 async function getSingleError(cityName) {
     const realData = await getAvg(cityName); // 基准值
-    console.log("!!!!!!!!!!", realData);
+    const dateStr =  get_yesterday_formatted()
     await DailyAvg.create({
         city: realData.cityName,
+        target_date: dateStr,
         temp: realData.temp,
-        tempMax: realData.tempMax,
-        tempMin: realData.tempMin,
+        temp_max: realData.tempMax,
+        temp_min: realData.tempMin,
         humidity: realData.humidity,
         precip: realData.precip,
         pressure: realData.pressure,
         total_records: realData.totalRecords,
         temp_valid_count: realData.validCounts.temp,
-        tempMax_valid_count: realData.validCounts.tempMax,
-        tempMin_valid_count: realData.validCounts.tempMin,
+        temp_max_valid_count: realData.validCounts.tempMax,
+        temp_min_valid_count: realData.validCounts.tempMin,
         humidity_valid_count: realData.validCounts.humidity,
         precip_valid_count: realData.validCounts.precip,
         pressure_valid_count: realData.validCounts.pressure,
         temp_filtered_count: realData.filteredCounts.temp,
-        tempMax_filtered_count: realData.filteredCounts.tempMax,
-        tempMin_filtered_count: realData.filteredCounts.tempMin,
+        temp_max_filtered_count: realData.filteredCounts.tempMax,
+        temp_min_filtered_count: realData.filteredCounts.tempMin,
         humidity_filtered_count: realData.filteredCounts.humidity,
         precip_filtered_count: realData.filteredCounts.precip,
         pressure_filtered_count: realData.filteredCounts.pressure,
@@ -39,4 +36,6 @@ async function getSingleError(cityName) {
 
 module.exports = {
 }
-getSingleError('北京')
+CITY_LIST.map(item => {
+getSingleError(item)
+})

@@ -64,7 +64,7 @@ function mapTiWeatherDataDays0(rawData, options = {}) {
     id: null,
     city,
     source,
-    forecast_time: new Date(time).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" }),
+    forecast_time: new Date(time).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" }).split('T')[0],
     lat,
     lon,
     temp_max: values.temperatureMax,

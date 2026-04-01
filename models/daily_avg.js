@@ -18,8 +18,84 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(50),
       allowNull: false,
     },
-    error_value: {
+    target_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+    temp_valid_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    temp_max_valid_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    temp_min_valid_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    humidity_valid_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    precip_valid_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    pressure_valid_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    temp_filtered_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    temp_max_filtered_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    temp_min_filtered_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    humidity_filtered_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    precip_filtered_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    pressure_filtered_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    temp: {
       type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    temp_max: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    temp_min: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    humidity: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    precip: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    pressure: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    total_records: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
   }, {
@@ -27,12 +103,11 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'DailyAvg',
     tableName: 'daily_avgs',
     timestamps: true,// 启用 createdAt 和 updatedAt
-    underscored: true,               
+    underscored: true,
     indexes: [
       {
         unique: true,
-        fields: ['city', 'source', 'target_date'],
-
+        fields: ['city', 'target_date']
       },
     ],
   });
