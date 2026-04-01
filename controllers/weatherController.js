@@ -10,6 +10,7 @@ const {
   filterOutliersByMaxDeviation,
   get_yesterday_formatted,
 } = require("../utils/helpers");
+const { da } = require("@faker-js/faker");
 // console.log("City:", City);
 
 // 昨天的天气数据
@@ -128,18 +129,18 @@ router.get('/current', async (req, res) => {
 
 router.get('/days', async (req, res) => {
   try {
-    let { date, source } = req.query;
+    let { date, source, location } = req.query;
     // console.log("!!!!!!!!",req.query['date[start]'],req.query['location[]'],req.query['source[]']);
-    console.log("@@@@@@@@@",req.query.source);
+    // console.log("@@@@@@@@@",req.query.date);
     // ---------- 兼容多种 location 传参方式 ----------
     let locations = [];
     
     // location 字符串（逗号分隔）
-    if (req.query.location) {
-      if (typeof req.query.location === 'string') {
-        locations = req.query.location.split(',').map(s => s.trim()).filter(Boolean);
-      } else if (Array.isArray(req.query.location)) {
-        locations = req.query.location.map(s => s.trim()).filter(Boolean);
+    if (location) {
+      if (typeof location === 'string') {
+        locations = location.split(',').map(s => s.trim()).filter(Boolean);
+      } else if (Array.isArray(location)) {
+        locations = location.map(s => s.trim()).filter(Boolean);
       }
     }
     // location[] 数组（axios 传数组时自动生成）
@@ -173,7 +174,11 @@ router.get('/days', async (req, res) => {
 
     // ---------- 日期处理 ----------
     let startDate, endDate;
-    if (!date && !req.query['date[start]']) {
+    if(date) {
+      startDate = date
+      endDate = date
+    }
+    else if (!date && !req.query['date[start]']) {
       startDate = dayjs().format('YYYY-MM-DD');
       endDate = dayjs().add(5, 'day').format('YYYY-MM-DD');
     } else if (req.query['date[start]'].length !== 0){

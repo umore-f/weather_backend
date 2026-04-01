@@ -6,7 +6,7 @@ const {
 } = require("../../../utils/helpers");
 require("dotenv").config({ path: "../../.env" });
 
-async function getSingleError(cityName) {
+async function setAverage(cityName) {
     const realData = await getAvg(cityName); // 基准值
     const dateStr =  get_yesterday_formatted()
     await DailyAvg.create({
@@ -33,9 +33,11 @@ async function getSingleError(cityName) {
         pressure_filtered_count: realData.filteredCounts.pressure,
     });
 }
-
-module.exports = {
+async function setAvg() {
+    for (const city of CITY_LIST) {
+        await setAverage(city);
+    }
 }
-CITY_LIST.map(item => {
-getSingleError(item)
-})
+module.exports = {
+    setAvg
+}

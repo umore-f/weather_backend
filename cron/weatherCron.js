@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const { Mutex } = require('async-mutex');
 const { updateAllCities, updateAllCitiesHours } = require('../services/dbUpdater/weatherDbUpdater/index');
 const { setErrors, setScore } = require('../services/dbUpdater/errorDbUpdater/errorDbUpdater');
+const { setAvg } = require('../services/dbUpdater/avgDbUpdater/avgDbUpdater');
 
 // ==================== 工具函数 ====================
 
@@ -54,7 +55,7 @@ const mutexErrors = new Mutex();
 function startScheduler(options = {}) {
     const {
         cronCities = process.env.CRON_CITIES || '00 14 * * *',
-        cronErrors = process.env.CRON_ERRORS || '15 17 * * *',
+        cronErrors = process.env.CRON_ERRORS || '30 18 * * *',
         cronHours = process.env.CRON_HOURS || '0 */6 * * *',
         timezone = process.env.TZ || 'Asia/Shanghai',
     } = options;
@@ -89,6 +90,7 @@ function startScheduler(options = {}) {
             console.log(`[${new Date().toISOString()}] 定时任务触发：开始更新错误数据和评分`);
             await retry(() => withTimeout(setErrors(), 10 * 60 * 1000, 'setErrors'), 2, 5000);
             await retry(() => withTimeout(setScore(), 10 * 60 * 1000, 'setScore'), 2, 5000);
+            await retry(() => withTimeout(setAvg(), 10 * 60 * 1000, 'setScore'), 2, 5000);
             console.log(`[${new Date().toISOString()}] 错误数据和评分更新完成`);
         } catch (error) {
             console.error(`[${new Date().toISOString()}] 错误数据和评分更新失败:`, error);
