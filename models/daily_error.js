@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(20),
       allowNull: false,
       validate: {
-        isIn: [['hefeng', 'tomorrow', 'vc']],
+        isIn: [['QWeather', 'tomorrow.io', 'visualcrossing']],
       },
     },
     target_date: {
@@ -36,6 +36,11 @@ module.exports = (sequelize, DataTypes) => {
     error_value: {
       type: DataTypes.FLOAT,
       allowNull: false,
+    },
+    ewma_error: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      defaultValue: 0,
     },
   }, {
     sequelize,

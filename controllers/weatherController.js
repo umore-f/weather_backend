@@ -13,9 +13,9 @@ const {
 const { da } = require("@faker-js/faker");
 // console.log("City:", City);
 
-// 昨天的天气数据
-async function getHistoryWeather(cityName) {
-  const dateStr = get_yesterday_formatted();
+async function getHistoryWeather(cityName, dateParam) {
+  // 如果传入了日期参数则使用，否则默认为昨天
+  const dateStr = dateParam || get_yesterday_formatted();
   const dailyWeatherList = await DailyWeather.findAll({
     where: {
       city: cityName,
@@ -29,10 +29,6 @@ async function getHistoryWeather(cityName) {
     console.log("未找到记录!!!!!!");
     return [];
   }
-  // dailyWeatherList.forEach((record, index) => {
-  //   console.log(`记录 ${index + 1}:`, record.get({ plain: true }));
-  // });
-
   return dailyWeatherList.map((record) => ({
     cityName: record.city,
     tempMax: record.temp_max,
@@ -44,9 +40,9 @@ async function getHistoryWeather(cityName) {
   }));
 }
 // 昨天预报数据
-async function getNextWeather(cityName) {
-  // const weatherAvg = await getAvg(cityName)
-  const dateStr = get_yesterday_formatted();
+async function getNextWeather(cityName,dateParam) {
+    // 如果传入了日期参数则使用，否则默认为昨天
+  const dateStr = dateParam || get_yesterday_formatted();
   const dailyWeatherList = await DailyWeather.findAll({
     where: {
       city: cityName,

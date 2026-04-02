@@ -20,10 +20,6 @@ async function getError(cityName, source) {
     console.log("未找到记录");
     return [];
   }
-  // DailyErrorList.forEach((record, index) => {
-  //   console.log(`记录 ${index + 1}:`, record.get({ plain: true }));
-  // });
-
   return DailyErrorList.map((record) => ({
     cityName: record.city,
     source: record.source,
@@ -32,6 +28,7 @@ async function getError(cityName, source) {
     errorValue: record.error_value,
   }));
 }
+
 router.get('/errors', async (req, res) => {
   try {
     let { location, date, source } = req.query;

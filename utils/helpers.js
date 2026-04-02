@@ -46,6 +46,29 @@ function filterOutliersByMaxDeviation(values, thresholdRatio = 0.4) {
   }
   return values;
 }
+/**
+ * 校验单个天气字段的值是否在合理范围内
+ * @param {string} field - 字段名 (temp, humidity, precip, pressure 等)
+ * @param {number} value - 待校验的值
+ * @returns {boolean}
+ */
+function isValidWeatherValue(field, value) {
+  if (value === null || value === undefined || isNaN(value)) return false;
+  switch (field) {
+    case 'temp':
+    case 'tempMax':
+    case 'tempMin':
+      return value > -50 && value < 60;
+    case 'humidity':
+      return value >= 0 && value <= 100;
+    case 'precip':
+      return value >= 0 && value < 500;
+    case 'pressure':
+      return value > 800 && value < 1100;
+    default:
+      return true;
+  }
+}
 // 线性计算分数
 function errorToScore(error, maxErrorBound = 1) {
   // 线性映射：error >= maxErrorBound 得0分，error=0得100分
@@ -53,52 +76,69 @@ function errorToScore(error, maxErrorBound = 1) {
   return 100 * (1 - error / maxErrorBound);
 }
 /**
- * 根据各字段误差计算综合平均误差（归一化后）
- * @param {Object} errors - 各字段误差值，例如 { temp: 1.5, tempMax: 2.0, tempMin: 1.8, humidity: 5, precip: 0.2, pressure: 3 }
- * @param {Object} fieldConfigs - 各字段的配置，包括 maxError（该字段允许的最大误差，用于归一化）和 weight（权重）
- * @returns {number} 综合平均误差（值越小越好，通常在0-1之间，但可能超过1如果误差超过maxError）
+ * 根据各字段误差计算综合平均分数（归一化后）
+ * @param {Object} param0 - { errors, source, target_date, city }
+ * @param {Object} fieldConfigs - 各字段配置：{ maxError, weight }
+ * @returns {Object} { source, target_date, city, totalScore, fieldScores, window_days }
  */
 function calculateNormalizedAverageError({ errors, source, target_date, city }, fieldConfigs) {
   let totalScore = 0;
   let totalWeight = 0;
+  const fieldScores = {};
 
   for (const [field, error] of Object.entries(errors)) {
-    let totalScore = 0;
-    let totalWeight = 0;
-    const fieldScores = {};
+    const config = fieldConfigs[field];
+    if (!config) continue;
+    const { maxError, weight = 1 } = config;
+    const score = fieldErrorToScore(error, maxError);
+    fieldScores[field] = score;
+    totalScore += score * weight;
+    totalWeight += weight;
+  }
 
-    for (const [field, error] of Object.entries(errors)) {
-      const config = fieldConfigs[field];
-      if (!config) continue;
-      const { maxError, weight = 1 } = config;
-      // 使用线性映射计算该字段分数（假设 fieldErrorToScore 已定义）
-      const score = fieldErrorToScore(error, maxError);
-      fieldScores[field] = score;          // 记录单个字段分数
-      totalScore += score * weight;
-      totalWeight += weight;
-    }
-
-    if (totalWeight === 0) {
-      return { totalScore: 0, fieldScores: {} };
-    }
-    const total = totalScore / totalWeight;
-    // 可选：保留两位小数
-    const roundedTotal = Math.round(total * 100) / 100;
-    return { source, target_date, city, totalScore: roundedTotal, fieldScores, window_days:7 };
+  if (totalWeight === 0) {
+    return { source, target_date, city, totalScore: 0, fieldScores: {}, window_days: 7 };
+  }
+  const total = totalScore / totalWeight;
+  const roundedTotal = Math.round(total * 100) / 100;
+  return { source, target_date, city, totalScore: roundedTotal, fieldScores, window_days: 7 };
+}
+/**
+ * 将单个字段的误差映射为分数（0-100）
+ * @param {number} error - 该字段的误差
+ * @param {number} maxError - 最大可接受误差，误差 ≥ 此值得 0 分
+ * @param {string} mode - 'linear' 或 'exponential'，默认 'linear'
+ * @param {number} steepness - 仅当 mode='exponential' 时有效，默认 5
+ * @returns {number}
+ */
+function fieldErrorToScore(error, maxError, mode = 'linear', steepness = 5) {
+  if (maxError <= 0) return error === 0 ? 100 : 0;
+  if (error >= maxError) return 0;
+  if (error <= 0) return 100;
+  
+  if (mode === 'exponential') {
+    // 分数 = 100 * exp(-steepness * error / maxError)
+    const score = 100 * Math.exp(-steepness * error / maxError);
+    return Math.round(score * 100) / 100;
+  } else {
+    // 线性
+    const score = 100 * (1 - error / maxError);
+    return Math.round(score * 100) / 100;
   }
 }
-  /**
-   * 将单个字段的误差映射为分数（0-100）
-   * @param {number} error - 该字段的误差（例如平均绝对误差）
-   * @param {number} maxError - 最大可接受误差，误差 ≥ 此值得 0 分
-   * @returns {number} 分数（0-100，保留两位小数）
-   */
-  function fieldErrorToScore(error, maxError) {
-    if (maxError <= 0) return error === 0 ? 100 : 0;  // 边界处理
-    if (error >= maxError) return 0;
-    if (error <= 0) return 100;
-    const score = 100 * (1 - error / maxError);
-    return Math.round(score * 100) / 100; // 保留两位小数
-  }
-  module.exports = { getYesterdayFormatted, isEmptyValue, filterOutliersByMaxDeviation, get_yesterday_formatted, calculateNormalizedAverageError, errorToScore, fieldErrorToScore }
+function weightedAverage(values, weights) {
+  const sumWeight = weights.reduce((a, b) => a + b, 0);
+  if (sumWeight === 0) return values.reduce((a, b) => a + b, 0) / values.length;
+  return values.reduce((sum, v, i) => sum + v * weights[i], 0) / sumWeight;
+}
+module.exports = { 
+  getYesterdayFormatted, 
+  isEmptyValue, 
+  filterOutliersByMaxDeviation, 
+  get_yesterday_formatted, 
+  calculateNormalizedAverageError, 
+  errorToScore, 
+  fieldErrorToScore,
+  weightedAverage
+ }
 

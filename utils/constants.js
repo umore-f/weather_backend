@@ -18,7 +18,7 @@ const FIELDS_DAYS = [
 //     '北京'
 // ];
 const CITY_LIST = [
-'北京', '上海', '广州', '深圳', '杭州', '成都', '南京', '武汉', '重庆', '苏州','天津', '长沙', '青岛', '西安', '郑州', '合肥', '宁波', '无锡', '济南', '福州','厦门', '东莞', '佛山', '大连', '沈阳', '昆明', '南昌', '哈尔滨', '泉州', '常州',
+'北京', '上海', '广州', '深圳', '杭州', '成都', '南京', '武汉', '重庆', '苏州','天津', '长沙', '青岛', '西安', '郑州', '合肥', '宁波', '无锡', '济南', '福州',
 ];
     // 
     // 
@@ -39,20 +39,26 @@ const CITY_LIST_TEST = [
 const FIELDS_CAL = ['tempMax', 'tempMin', 'temp', 'humidity', 'precip', 'pressure']
 // 数据源
 const SOURCE_LIST = ['QWeather','tomorrow.io','visualcrossing']
-const FIELDCONFIGS = {
-  temp:     { maxError: 4, weight: 1 },   // 温度误差边界3°C
-  tempMax:  { maxError: 4, weight: 1 },
-  tempMin:  { maxError: 4, weight: 1 },
-  humidity: { maxError: 20, weight: 1 },  // 湿度误差边界15%
-  precip:   { maxError: 3, weight: 1 },   // 降水误差边界2mm
-  pressure: { maxError: 20, weight: 1 }   // 气压误差边界15hPa
+const FIELD_CONFIGS = {
+  temp:     { maxError: 3, weight: 3 },   // 温度最重要
+  tempMax:  { maxError: 3, weight: 2 },   // 最高温次之
+  tempMin:  { maxError: 3, weight: 2 },
+  humidity: { maxError: 15, weight: 2 },  // 湿度中等
+  precip:   { maxError: 5, weight: 2 },   // 降水重要但难，权重适中
+  pressure: { maxError: 15, weight: 1 }   // 气压权重最低
 };
+const EWMA_ALPHA = 0.3;          // 平滑系数
+const COLD_START_DAYS = 7;       // 冷启动天数
+const MAX_WEIGHT_RATIO = 0.6;    // 单个源最大权重占比
 module.exports = {
   BASE_API,
   FIELDS_HOURS,
   CITY_LIST,
   FIELDS_DAYS,
   FIELDS_CAL,
-  FIELDCONFIGS,
-  SOURCE_LIST
+  FIELD_CONFIGS,
+  SOURCE_LIST,
+  EWMA_ALPHA,
+  COLD_START_DAYS,
+  MAX_WEIGHT_RATIO,
 };
