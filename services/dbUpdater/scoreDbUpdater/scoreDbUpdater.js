@@ -1,12 +1,14 @@
-import { getEWMAError } from '../../../controllers/errorScore';
-
+const { getEWMAError } = require('../../../controllers/errorScore')
 const { SOURCE_LIST, CITY_LIST, FIELD_CONFIGS } = require('../../../utils/constants');
 const { get_yesterday_formatted } = require('../../../utils/helpers');
 const db = require('../../../models');
 const { TrustScore } = db
 const { calculateNormalizedAverageError } = require('../../fetcher/processingData')
-// 只处理昨天这一天
-const targetDate = get_yesterday_formatted();
+// ==================== 常量配置 ====================
+
+const TARGET_DATE = get_yesterday_formatted(); // 固定处理昨天的数据
+
+// ==================== 核心函数 ====================
 
 /**
  * 获取指定城市单个日期的误差数据（按数据源聚合）
