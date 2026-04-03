@@ -1,6 +1,6 @@
 const { getError, getOneError, getEWMAError } = require('./controllers/errorScore')
-const {  setErrors,  setScore, } = require('./services/dbUpdater/errorDbUpdater/errorDbUpdater')
-const { selfConsistentBaseline } = require('./services/dbUpdater/avgDbUpdater/avgDbUpdater')
+const {  setErrors,  setScore, } = require('./services/dbUpdater/realErrorScoreDbupdate/errorDbUpdater')
+const { selfConsistentBaseline } = require('./services/dbUpdater/realErrorScoreDbupdate/avgDbUpdater')
 const { getHistoryWeather, getNextWeather } = require('./controllers/weatherController')
 const { FIELDS_CAL, CITY_LIST, SOURCE_LIST, FIELD_CONFIGS } = require('./utils/constants')
 const { getRobustRealValue, calculateNormalizedAverageError } = require('./services/fetcher/processingData')

@@ -4,12 +4,6 @@ const { get_yesterday_formatted } = require('../../../utils/helpers');
 const db = require('../../../models');
 const { TrustScore } = db
 const { calculateNormalizedAverageError } = require('../../fetcher/processingData')
-// ==================== 常量配置 ====================
-
-const TARGET_DATE = get_yesterday_formatted(); // 固定处理昨天的数据
-
-// ==================== 核心函数 ====================
-
 /**
  * 获取指定城市单个日期的误差数据（按数据源聚合）
  * @param {string} city - 城市名称
@@ -17,6 +11,7 @@ const TARGET_DATE = get_yesterday_formatted(); // 固定处理昨天的数据
  *   [{ target_date, source, city, error: { temp: number, humidity: number, ... } }]
  */
 async function fetchErrorsByCity(city) {
+    const targetDate = get_yesterday_formatted(); 
     const rawErrors = await getEWMAError(city, targetDate); // 返回所有数据源的误差数组
     const errorsByDateAndSource = [];
 

@@ -12,7 +12,7 @@ require("dotenv").config({ path: "../../.env" });
 
 // ==================== 常量配置 ====================
 const COLD_START_THRESHOLD = 7;          // 冷启动阈值：实况数据少于该天数时使用中位数法
-const TARGET_DATE = get_yesterday_formatted(); // 统一处理昨天日期
+
 const MAX_ITERATIONS = 5;                // 自洽迭代最大次数
 const CONVERGENCE_TOLERANCE = 0.01;      // 收敛容差
 
@@ -52,7 +52,7 @@ async function isColdStartCity(city) {
  */
 async function getRobustBaseline(city) {
     console.log(`📊 [稳健中位数] 开始处理城市: ${city}`);
-
+    const targetDate = get_yesterday_formatted(); // 统一处理昨天日期
     const historyData = await getHistoryWeather(city);
     if (!historyData || historyData.length === 0) {
         console.warn(`⚠️ 城市 ${city} 无历史数据，跳过中位数真值计算`);
@@ -69,7 +69,7 @@ async function getRobustBaseline(city) {
     const fieldObj = Object.fromEntries(FIELDS_CAL.map((field, idx) => [field, medianValues[idx]]));
     const normalizedObj = normalizeFieldNames({
         city,
-        target_date: TARGET_DATE,
+        target_date: targetDate,
         ...fieldObj
     });
 
@@ -115,7 +115,7 @@ async function selfConsistentBaseline(city, field) {
  */
 async function getSelfConsistentBaseline(city) {
     console.log(`🔄 [自洽迭代] 开始处理城市: ${city}`);
-
+    const targetDate = get_yesterday_formatted(); // 统一处理昨天日期
     const fieldBaselines = {};
     for (const field of FIELDS_CAL) {
         try {
@@ -128,7 +128,7 @@ async function getSelfConsistentBaseline(city) {
 
     const normalizedObj = normalizeFieldNames({
         city,
-        target_date: TARGET_DATE,
+        target_date: targetDate,
         ...fieldBaselines
     });
 

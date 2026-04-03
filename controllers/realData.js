@@ -5,20 +5,20 @@ const router = express.Router();
 const { get_yesterday_formatted } = require('../utils/helpers')
 
 async function getRealData(cityName, dateParam) {
-const dateStr = dateParam || get_yesterday_formatted();
-  const DailyAvgList = await DailyAvg.findAll({
+  const dateStr = dateParam || get_yesterday_formatted();
+
+  const record = await DailyAvg.findOne({
     where: {
       city: cityName,
-      target_date: {
-        [Op.like]: dateStr,
-      },
+      target_date: dateStr,
     },
   });
-  if (DailyAvgList.length === 0) {
+
+  if (!record) {
     console.log("未找到记录");
-    return [];
+    return null;
   }
-  return DailyAvgList.map((record) => ({
+  return {
     cityName: record.city,
     targetDate: record.target_date,
     temp: record.temp,
@@ -26,8 +26,8 @@ const dateStr = dateParam || get_yesterday_formatted();
     tempMin: record.temp_min,
     humidity: record.humidity,
     precip: record.precip,
-    pressure: record.pressure
-  }));
+    pressure: record.pressure,
+  };
 }
 async function getRealDataList(cityName) {
   const DailyAvgList = await DailyAvg.findAll({

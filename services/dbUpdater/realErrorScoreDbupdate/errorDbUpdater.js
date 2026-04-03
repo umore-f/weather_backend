@@ -14,8 +14,6 @@ require("dotenv").config({ path: "../../.env" });
 
 // ==================== 常量配置 ====================
 const EWMA_ALPHA = 0.3;                     // EWMA 平滑因子
-const TARGET_DATE = get_yesterday_formatted(); // 固定处理昨天的数据
-
 // ==================== 核心函数 ====================
 
 /**
@@ -24,9 +22,10 @@ const TARGET_DATE = get_yesterday_formatted(); // 固定处理昨天的数据
  * @returns {Promise<Array>} 误差对象数组，每个元素包含：city, source, error_type, target_date, error_value
  */
 async function computeCityErrors(city) {
+    const targetDate = get_yesterday_formatted(); // 固定处理昨天的数据
     // 获取预测数据（各数据源的预报）和实况数据
-    const forecastData = await getNextWeather(city, TARGET_DATE);
-    const observedData = await getRealData(city, TARGET_DATE);
+    const forecastData = await getNextWeather(city, targetDate);
+    const observedData = await getRealData(city, targetDate);
 
     const errorPromises = [];
 
