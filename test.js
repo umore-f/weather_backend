@@ -1,12 +1,12 @@
-const { getError, getCompreErrorFromDb, } = require('./controllers/errorScore')
-const { getSingleError, getCompreError, setErrors, getSingleScore, setScore, getSourceWeights, selfConsistentBaseline } = require('./services/dbUpdater/errorDbUpdater/errorDbUpdater')
-const { updateAllCities } = require('./services/dbUpdater/weatherDbUpdater/index')
+const { getError, getOneError, getEWMAError } = require('./controllers/errorScore')
+const {  setErrors,  setScore, } = require('./services/dbUpdater/errorDbUpdater/errorDbUpdater')
+const { selfConsistentBaseline } = require('./services/dbUpdater/avgDbUpdater/avgDbUpdater')
 const { getHistoryWeather, getNextWeather } = require('./controllers/weatherController')
-const { FIELDS_CAL, CITY_LIST, SOURCE_LIST } = require('./utils/constants')
-const { getRobustRealValue, evaluateFieldCredibility } = require('./services/fetcher/processingData')
-const { setAverage } = require('./services/dbUpdater/avgDbUpdater/avgDbUpdater')
-const { getRealData } = require('./controllers/realData')
-
+const { FIELDS_CAL, CITY_LIST, SOURCE_LIST, FIELD_CONFIGS } = require('./utils/constants')
+const { getRobustRealValue, calculateNormalizedAverageError } = require('./services/fetcher/processingData')
+const { getRealData, getRealDataList } = require('./controllers/realData')
+const db = require('./models')
+const { TrustScore } = db
 
 
 
@@ -30,7 +30,7 @@ const { getRealData } = require('./controllers/realData')
 
 // }
 // geyH('北京')
-// const dataList = ['2026-3-27', '2026-3-28', '2026-3-29', '2026-3-30', '2026-3-31', '2026-4-1']
+const dataList = ['2026-03-27', '2026-03-28', '2026-03-29', '2026-03-30', '2026-03-31', '2026-04-01']
 // async function setReal (dataList,CITY_LIST) {
 //     for (const dataStr of dataList) {
 //     for (const city of CITY_LIST) {
@@ -69,12 +69,105 @@ const { getRealData } = require('./controllers/realData')
 // async function qwe() {
 //     const result = await getSourceWeights('北京',SOURCE_LIST,'temp')
 //     console.log("!!!!!!!!!!",result);
-    
+
 // }
 // qwe()
 
-async function qwe() {
-    const result = await selfConsistentBaseline('北京','temp')
+// async function qwe(city) {
+//     const resultMap = {};
+//     const dateStr = '2026-04-02'
+//     for (const field of FIELDS_CAL) {
+//         const result = await selfConsistentBaseline(city, field);
+//         resultMap[field] = result;
+//     }
+//     const obj = {
+//         city: city,
+//         target_date: dateStr,
+//         ...resultMap
+//     };
+//     const { tempMax: temp_max, tempMin: temp_min, ...rest } = obj
+//     const updatedObj = { temp_max, temp_min, ...rest }
+//     return updatedObj
+// }
+// async function qwe1() {
+//     const result = await qwe('北京')
+//     console.log(result);
+
+// }
+// qwe1()
+
+
+async function qwe(city) {
+    const results = [];
+
+    for (const target_date of dataList) {
+        const allErrors = await getEWMAError(city, target_date); // 返回所有来源的错误数组
+        // 遍历所有需要关注的来源
+        for (const source of SOURCE_LIST) {
+            const error = allErrors
+                .filter(item => item.source === source)
+                .reduce((acc, item) => {
+                    acc[item.error_type] = item.ewma_error;
+                    return acc;
+                }, {});
+            results.push({
+                target_date: target_date,
+                source: source,
+                city: city,
+                error: error
+            });
+        }
+    }
+    return results;
 }
-qwe()
+async function qwe1(city) {
+    const errorsList = await qwe(city)
+    for (const errors of errorsList) {
+        const res = calculateNormalizedAverageError({ errors: errors['error'], source: errors.source, target_date: errors.target_date, city: city },
+            FIELD_CONFIGS
+        )
+        const {
+            source,
+            target_date,
+            city:cityName,
+            totalScore,
+            fieldScores: {
+                humidity,
+                precip,
+                pressure,
+                temp,
+                tempMax,
+                tempMin,
+            },
+            window_days,
+        } = res;
+        await TrustScore.upsert({
+            city:cityName,
+            source,
+            target_date,
+            window_days: window_days || 7,
+            total_score: totalScore,
+            humidity_score: humidity,
+            precip_score: precip,
+            pressure_score: pressure,
+            temp_score: temp,
+            temp_max_score: tempMax,
+            temp_min_score: tempMin,
+        });
+
+        console.log(`成功存储 ${city} ${target_date} 的信任分数据（宽表）`);
+    }
+    // const res = calculateNormalizedAverageError({ errors, source: 'QWeather', target_date: '2026-04-01', city: '北京' },
+    //     FIELD_CONFIGS
+    // )
+    // console.log(errorsList);
+
+
+}
+async function name() {
+    for (const c of CITY_LIST) {
+        await qwe1(c)
+    }
+}
+name()
 

@@ -28,7 +28,44 @@ async function getError(cityName, source) {
     errorValue: record.error_value,
   }));
 }
-
+async function getAllError(cityName, source) {
+  const DailyErrorList = await DailyError.findAll({
+    where: {
+      city: cityName,
+      source: source,
+    },
+  });
+  if (DailyErrorList.length === 0) {
+    console.log("未找到记录");
+    return [];
+  }
+  return DailyErrorList.map((record) => ({
+    cityName: record.city,
+    source: record.source,
+    targetDate: record.target_date,
+    errorType: record.error_type,
+    errorValue: record.error_value,
+  }));
+}
+async function getOneError(city, src, field) {
+  const DailyErrorLatest = await DailyError.findOne({
+    where: { city, source: src, error_type: field },
+    order: [['target_date', 'DESC']]
+  });
+  if (!DailyErrorLatest) {
+    console.log("未找到记录");
+    return null;
+  }
+  return DailyErrorLatest
+}
+async function getEWMAError(city,target_date) {
+  const record = await DailyError.findAll({
+    where: { city, target_date }
+    // source, error_type: field, target_date
+  });
+  if (record.length == 0) return null
+  return record
+}
 router.get('/errors', async (req, res) => {
   try {
     let { location, date, source } = req.query;
@@ -198,5 +235,8 @@ router.get('/score', async (req, res) => {
 });
 module.exports = {
   getError,
+  getOneError,
+  getAllError,
+  getEWMAError,
   router
 };

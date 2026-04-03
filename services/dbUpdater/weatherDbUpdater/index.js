@@ -1,5 +1,5 @@
 // 从其他api那获取数据存到本地数据库
-const Bottleneck = require('bottleneck');
+import Bottleneck from 'bottleneck';
 const { CITY_LIST } = require('../../../utils/constants');
 const {
     syncHfWeatherDataHours,

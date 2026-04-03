@@ -1,7 +1,5 @@
-
-const { filterOutliersByMaxDeviation, isEmptyValue} = require('../../utils/helpers')
-const { getHistoryWeather } = require('../../controllers/weatherController')
-
+const { getOneError } = require('../../controllers/errorScore')
+const { fieldErrorToScoreExp, fieldErrorToScore } = require('../../utils/helpers')
 // 先取中位数获得基本真实值
 function getRobustRealValue(values) {
   if (values.length === 0) return null;
@@ -13,67 +11,16 @@ function getRobustRealValue(values) {
   }
   return sorted[mid];
 }
-// ========================= 单日评估 =========================
-/**
- * 计算各预报源相对于真实值的误差（单日）总值
- * @param {Object} realData - 真实值 { temp, tempMax, tempMin, humidity, precip, pressure }
- * @param {Array} sources - 预报源列表，每个元素为 { sourceName, temp, tempMax, tempMin, humidity, precip, pressure }
- * @param {Object} weights - 可选，各字段权重（默认等权）
- * @returns {Array} 排序后的误差列表（误差小的排在前面）
- */
-function evaluateSources(realData, sources, weights = null) {
-  const defaultWeights = { temp: 3, tempMax: 2, tempMin: 2, humidity: 2, precip: 2, pressure: 1 };
-  const w = weights || defaultWeights;
 
-  const absError = (pred, real) => {
-    if (pred === null || real === null) return null;
-    return Math.abs(pred - real);
-  };
-
-  const results = sources.map(source => {
-    let totalError = 0;
-    let validCount = 0;
-    const fields = ['temp', 'tempMax', 'tempMin', 'humidity', 'precip', 'pressure'];
-
-    for (const field of fields) {
-      const err = absError(source[field], realData[field]);
-      if (err !== null) {
-        totalError += err * w[field];
-        validCount++;
-      }
-    }
-
-    const avgError = validCount > 0 ? totalError / validCount : Infinity;
-    return { city:source.cityName, target_date:source.forecastTime, source: source.source, total_error: Number(totalError.toFixed(2)), avg_error: Number(avgError.toFixed(2)), valid_fields: validCount };
-  });
-
-  results.sort((a, b) => a.avg_error - b.avg_error);
-  return results;
-}
-/**
- * 评估单个字段的可信度（单日）单个字段的误差值
- * @param {string} field - 字段名
- * @param {Object} realData - 真实值（需包含该字段）
- * @param {Array} sources - 预报源列表
- * @returns {Array} 按误差升序排列的预报源列表，每个元素包含 sourceName 和 error
- */
-function evaluateFieldCredibility(field, realData, sources) {
-  const realValue = realData[0][field];
-  if (realValue === null || realValue === undefined) {
-    throw new Error(`真实数据中缺少字段 ${field} 或值为 null`);
+// 计算权重 -> 融合数据 -> 不再使用中位数 
+async function getSourceWeights(city, sources, field, fieldConfigs) {
+  const weights = [];
+  for (const src of sources) {
+    const latest = await getOneError(city, src, field)
+    const ewma = latest ? latest.ewma_error : (fieldConfigs[field].maxError / 2);
+    weights.push(1 / (ewma + 1e-6));
   }
-
-  const results = sources.map(source => {
-    const pred = source[field];
-    let error = null;
-    if (pred !== null && pred !== undefined) {
-      error = Number(Math.abs(pred - realValue).toFixed(2));
-    }
-    return { city:source.cityName, target_date: source.forecastTime, source: source.source, error_value: error, error_type:field };
-  }).filter(item => item.error !== null); // 只保留有预报值的源
-
-  results.sort((a, b) => a.error - b.error);
-  return results;
+  return weights;
 }
 
 // 计算新的 EWMA 值（纯函数）
@@ -84,10 +31,82 @@ function computeNewEWMA(newError, previousEWMA, alpha, defaultMaxError) {
   }
   return alpha * newError + (1 - alpha) * previousEWMA;
 }
+// 判断字段是否为空且极值是否合理
+function isValidWeatherValue(field, value) {
+  if (value === null || value === undefined || isNaN(value)) return false;
+  switch (field) {
+    case 'temp':
+    case 'tempMax':
+    case 'tempMin':
+      return value > -50 && value < 60;
+    case 'humidity':
+      return value >= 0 && value <= 100;
+    case 'precip':
+      return value >= 0 && value < 500;
+    case 'pressure':
+      return value > 800 && value < 1100;
+    default:
+      return true;
+  }
+}
+// 计算得分
+function calculateNormalizedAverageError({ errors, source, target_date, city }, fieldConfigs, options = {}) {
+  const { mode = 'linear', steepness = 5, window_days = 7 } = options;
+  let totalScore = 0, totalWeight = 0;
+  const fieldScores = {};
 
+  for (const [field, error] of Object.entries(errors)) {
+    const config = fieldConfigs[field];
+    if (!config) {
+      console.warn(`缺少字段: ${field}`);
+      continue;
+    }
+    const { maxError, weight = 1 } = config;
+    let score;
+    if (mode === 'exponential') {
+      score = fieldErrorToScoreExp(error, maxError, steepness);
+    } else {
+      score = fieldErrorToScore(error, maxError);
+    }
+    fieldScores[field] = score;
+    totalScore += score * weight;
+    totalWeight += weight;
+  }
+
+  if (totalWeight === 0) return { source, target_date, city, totalScore: 0, fieldScores: {}, window_days };
+  const total = totalScore / totalWeight;
+  return { source, target_date, city, totalScore: Math.round(total * 100) / 100, fieldScores, window_days };
+}
+// 误差计算
+function evaluateFieldCredibility(field, realData, sources) {
+  const realValue = realData[field];
+  if (realValue === null || realValue === undefined) {
+    throw new Error(`真实数据中缺少字段 ${field} 或值为 null`);
+  }
+
+  const results = sources.map(source => {
+    const pred = source[field];
+    let error = null;
+    if (pred !== null && pred !== undefined) {
+      error = Number(Math.abs(pred - realValue).toFixed(2));
+    }
+    return {
+      city: source.cityName,
+      target_date: source.forecastTime,
+      source: source.source,
+      error_value: error,
+      error_type: field
+    };
+  }).filter(item => item.error_value !== null); // 只保留有预报值的源
+
+  results.sort((a, b) => a.error_value - b.error_value);
+  return results;
+}
 module.exports = {
-  evaluateSources,
-  evaluateFieldCredibility,
   getRobustRealValue,
-  computeNewEWMA
+  computeNewEWMA,
+  getSourceWeights,
+  isValidWeatherValue,
+  calculateNormalizedAverageError,
+  evaluateFieldCredibility
 }

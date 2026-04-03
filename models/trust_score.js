@@ -1,5 +1,5 @@
 'use strict';
-const { Model, DataTypes } = require('sequelize');
+const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
   class TrustScore extends Model {
@@ -21,21 +21,6 @@ module.exports = (sequelize, DataTypes) => {
     source: {
       type: DataTypes.STRING(20),
       allowNull: false,
-      validate: {
-        isIn: [['hefeng', 'tomorrow', 'vc']], // 可选项，模拟枚举
-      },
-    },
-    score_type: {
-      type: DataTypes.STRING(10),
-      defaultValue: 'temp_max',
-    },
-    score: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-      validate: {
-        min: 0,
-        max: 100,
-      },
     },
     target_date: {
       type: DataTypes.DATEONLY,
@@ -45,19 +30,56 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       defaultValue: 7,
     },
+    // 总分
+    total_score: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      validate: { min: 0, max: 100 },
+    },
+    // 各子分
+    humidity_score: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      validate: { min: 0, max: 100 },
+    },
+    precip_score: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      validate: { min: 0, max: 100 },
+    },
+    pressure_score: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      validate: { min: 0, max: 100 },
+    },
+    temp_score: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      validate: { min: 0, max: 100 },
+    },
+    temp_max_score: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      validate: { min: 0, max: 100 },
+    },
+    temp_min_score: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      validate: { min: 0, max: 100 },
+    },
   }, {
     sequelize,
     modelName: 'TrustScore',
     tableName: 'trust_scores',
-    timestamps: true,               // 启用 createdAt 和 updatedAt
-    underscored: true, 
-    // 如果希望数据库字段名为 created_at / updated_at，取消注释：
-    // createdAt: 'created_at',
-    // updatedAt: 'updated_at',
+    timestamps: true,
+    underscored: true,
     indexes: [
       {
         unique: true,
-        fields: ['city', 'source', 'score_type'],
+        fields: ['city', 'source', 'target_date'],   // 每个城市+来源+日期唯一
+      },
+      {
+        fields: ['window_days'],   // 可选，便于按窗口查询
       },
     ],
   });

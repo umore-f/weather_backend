@@ -11,8 +11,10 @@ const db = {};
 
 let sequelize;
 if (config.use_env_variable) {
+  // @ts-ignore
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
+  // @ts-ignore
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 

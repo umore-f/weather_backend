@@ -54,7 +54,7 @@ const mutexErrors = new Mutex();
  */
 function startScheduler(options = {}) {
     const {
-        cronCities = process.env.CRON_CITIES || '30 12 * * *',
+        cronCities = process.env.CRON_CITIES || '00 13 * * *',
         cronErrors = process.env.CRON_ERRORS || '30 16 * * *',
         cronHours = process.env.CRON_HOURS || '0 */6 * * *',
         timezone = process.env.TZ || 'Asia/Shanghai',
@@ -80,24 +80,24 @@ function startScheduler(options = {}) {
     }, { timezone });
 
     // 任务2：更新错误数据和评分
-    cron.schedule(cronErrors, async () => {
-        if (mutexErrors.isLocked()) {
-            console.log(`[${new Date().toISOString()}] 上一次错误数据更新仍在运行，跳过`);
-            return;
-        }
-        const release = await mutexErrors.acquire();
-        try {
-            console.log(`[${new Date().toISOString()}] 定时任务触发：开始更新错误数据和评分`);
-            await retry(() => withTimeout(setErrors(), 10 * 60 * 1000, 'setErrors'), 2, 5000);
-            await retry(() => withTimeout(setScore(), 10 * 60 * 1000, 'setScore'), 2, 5000);
-            await retry(() => withTimeout(setAvg(), 10 * 60 * 1000, 'setScore'), 2, 5000);
-            console.log(`[${new Date().toISOString()}] 错误数据和评分更新完成`);
-        } catch (error) {
-            console.error(`[${new Date().toISOString()}] 错误数据和评分更新失败:`, error);
-        } finally {
-            release();
-        }
-    }, { timezone });
+    // cron.schedule(cronErrors, async () => {
+    //     if (mutexErrors.isLocked()) {
+    //         console.log(`[${new Date().toISOString()}] 上一次错误数据更新仍在运行，跳过`);
+    //         return;
+    //     }
+    //     const release = await mutexErrors.acquire();
+    //     try {
+    //         console.log(`[${new Date().toISOString()}] 定时任务触发：开始更新错误数据和评分`);
+    //         await retry(() => withTimeout(setErrors(), 10 * 60 * 1000, 'setErrors'), 2, 5000);
+    //         await retry(() => withTimeout(setScore(), 10 * 60 * 1000, 'setScore'), 2, 5000);
+    //         await retry(() => withTimeout(setAvg(), 10 * 60 * 1000, 'setScore'), 2, 5000);
+    //         console.log(`[${new Date().toISOString()}] 错误数据和评分更新完成`);
+    //     } catch (error) {
+    //         console.error(`[${new Date().toISOString()}] 错误数据和评分更新失败:`, error);
+    //     } finally {
+    //         release();
+    //     }
+    // }, { timezone });
 
     // 任务3：更新小时级数据
     cron.schedule(cronHours, async () => {

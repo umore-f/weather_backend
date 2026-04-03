@@ -6,7 +6,8 @@ const {
   mapHfWeatherDataDays0,
   mapHfWeatherDataDays1,
 } = require('../../../utils/mapManager')
-const { HoursForecast, DailyWeather } = require('../../../models')
+const db = require('../../../models')
+const { HoursForecast, DailyWeather } = db
 require('dotenv').config({ path: '../../.env' })
 async function syncHfWeatherDataHours(cityName) {
     try {
