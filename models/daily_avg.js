@@ -22,54 +22,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATEONLY,
       allowNull: false,
     },
-    temp_valid_count: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    temp_max_valid_count: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    temp_min_valid_count: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    humidity_valid_count: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    precip_valid_count: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    pressure_valid_count: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    temp_filtered_count: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    temp_max_filtered_count: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    temp_min_filtered_count: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    humidity_filtered_count: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    precip_filtered_count: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    pressure_filtered_count: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
     temp: {
       type: DataTypes.FLOAT,
       allowNull: true,
@@ -92,10 +44,6 @@ module.exports = (sequelize, DataTypes) => {
     },
     pressure: {
       type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    total_records: {
-      type: DataTypes.INTEGER,
       allowNull: true,
     },
   }, {
