@@ -13,16 +13,18 @@ const {
  * @param {number} ms 超时毫秒数
  * @param {string} taskName 任务名称（用于日志）
  */
-function withTimeout(promise, ms, taskName = '未命名任务') {
+async function withTimeout(promise, ms, taskName = '未命名任务') {
     let timeoutId;
     const timeoutPromise = new Promise((_, reject) => {
         timeoutId = setTimeout(() => {
             reject(new Error(`任务 "${taskName}" 执行超时 (${ms}ms)`));
         }, ms);
     });
-    return Promise.race([promise, timeoutPromise]).finally(() => {
+    try {
+        return await Promise.race([promise, timeoutPromise]);
+    } finally {
         clearTimeout(timeoutId);
-    });
+    }
 }
 
 /**
@@ -55,7 +57,7 @@ const mutexErrors = new Mutex();
  */
 function startScheduler(options = {}) {
     const {
-        cronCities = process.env.CRON_CITIES || '00 13 * * *',
+        cronCities = process.env.CRON_CITIES || '42 13 * * *',
         cronErrors = process.env.CRON_ERRORS || '00 18 * * *',
         cronHours = process.env.CRON_HOURS || '00 18 * * *',
         timezone = process.env.TZ || 'Asia/Shanghai',

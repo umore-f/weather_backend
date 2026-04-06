@@ -74,7 +74,7 @@ async function getRobustBaseline(city) {
     });
 
     await DailyAvg.upsert(normalizedObj, {
-        conflictFields: ['city', 'target_date']   // 假设表有唯一约束 (city, target_date)
+        conflictFields: ['city', 'target_date']  
     });
 
     console.log(`✅ [稳健中位数] 城市 ${city} 存储完成`);
