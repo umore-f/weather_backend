@@ -1,4 +1,4 @@
-const { getEWMAError } = require('../../../controllers/errorScore')
+const { getEWMAError } = require('../../../controllers/errors')
 const { SOURCE_LIST, CITY_LIST, FIELD_CONFIGS } = require('../../../utils/constants');
 const { get_yesterday_formatted } = require('../../../utils/helpers');
 const db = require('../../../models');

@@ -26,7 +26,6 @@ async function getHistoryWeather(cityName, dateParam) {
     },
   });
   if (dailyWeatherList.length === 0) {
-    console.log("未找到记录!!!!!!");
     return [];
   }
   return dailyWeatherList.map((record) => ({
@@ -126,9 +125,6 @@ router.get('/current', async (req, res) => {
 router.get('/days', async (req, res) => {
   try {
     let { date, source, location } = req.query;
-    // console.log("!!!!!!!!",req.query['date[start]'],req.query['location[]'],req.query['source[]']);
-    // console.log("@@@@@@@@@",req.query.date);
-    // ---------- 兼容多种 location 传参方式 ----------
     let locations = [];
     
     // location 字符串（逗号分隔）

@@ -1,4 +1,4 @@
-const { getOneError } = require('../../controllers/errorScore')
+const { getOneError } = require('../../controllers/errors')
 const { fieldErrorToScoreExp, fieldErrorToScore } = require('../../utils/helpers')
 // 先取中位数获得基本真实值
 function getRobustRealValue(values) {

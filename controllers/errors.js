@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const { sequelize } = require("../models"); 
+const { sequelize } = require("../models");
 const express = require("express");
 const dayjs = require("dayjs");
 const { DailyError, TrustScore } = require("../models");
@@ -7,7 +7,6 @@ const { get_yesterday_formatted } = require("../utils/helpers");
 
 const router = express.Router();
 
-// ==================== 辅助函数：参数解析 ====================
 /**
  * 解析查询参数中的多值字段（支持逗号分隔字符串或数组）
  * @param {Object} req - Express请求对象
@@ -47,6 +46,7 @@ function parseMultiParam(req, key, defaultValue = []) {
  * @returns {{ startDate: string, endDate: string }}
  */
 function parseDateRange(req) {
+
   const startParam = req.query["date[start]"];
   const endParam = req.query["date[end]"];
   const singleDateParam = req.query.date;
@@ -83,7 +83,6 @@ function parseDateRange(req) {
   };
 }
 
-// ==================== 原有的导出函数（保持接口不变，优化内部实现） ====================
 /**
  * 获取指定城市、来源、昨天日期的误差记录
  */
@@ -195,7 +194,7 @@ router.get("/errors", async (req, res) => {
 router.get("/errors/statistics", async (req, res) => {
   try {
     const { error_type, start_date, end_date } = req.query;
-    
+
     // 1. 解析 source 为数组
     let sources = [];
     if (req.query.source) {
@@ -322,14 +321,14 @@ router.get("/errors/avg-by-fields", async (req, res) => {
       return res.status(400).json({ code: 400, message: "缺少必要参数: source" });
     }
 
-    // 解析日期范围（复用 parseDateRange，与 /errors、/score 一致）
-    let startDate, endDate;
-    try {
-      const dateRange = parseDateRange(req);
-      startDate = dateRange.startDate;
-      endDate = dateRange.endDate;
-    } catch (err) {
-      return res.status(400).json({ code: 400, message: err.message });
+    const dateFilter = {};
+    const { end_date, start_date } = req.query;
+    if (start_date && end_date) {
+      dateFilter[Op.between] = [start_date, end_date];
+    } else if (start_date) {
+      dateFilter[Op.gte] = start_date;
+    } else if (end_date) {
+      dateFilter[Op.lte] = end_date;
     }
 
     // 聚合查询：按 source 和 error_type 分组，计算平均值（不按 city 分组，实现跨城市聚合）
@@ -337,7 +336,7 @@ router.get("/errors/avg-by-fields", async (req, res) => {
       where: {
         city: { [Op.in]: cities },
         source: { [Op.in]: sources },
-        target_date: { [Op.between]: [startDate, endDate] },
+        target_date: dateFilter,
       },
       attributes: [
         "source",
@@ -396,19 +395,20 @@ router.get("/errors/list", async (req, res) => {
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const pageSize = Math.max(1, parseInt(req.query.pageSize) || 20);
     const offset = (page - 1) * pageSize;
-    let startDate, endDate;
-    try {
-      const dateRange = parseDateRange(req);
-      startDate = dateRange.startDate;
-      endDate = dateRange.endDate;
-    } catch (err) {
-      return res.status(400).json({ code: 400, message: err.message });
+    const dateFilter = {};
+    const { end_date, start_date } = req.query;
+    if (start_date && end_date) {
+      dateFilter[Op.between] = [start_date, end_date];
+    } else if (start_date) {
+      dateFilter[Op.gte] = start_date;
+    } else if (end_date) {
+      dateFilter[Op.lte] = end_date;
     }
     const where = {};
     if (cities.length) where.city = { [Op.in]: cities };
     if (sources.length) where.source = { [Op.in]: sources };
     if (errorTypes.length) where.error_type = { [Op.in]: errorTypes };
-    where.target_date = { [Op.between]: [startDate, endDate] };
+    where.target_date = dateFilter;
 
     // 排序参数
     const sortField = req.query.sortField;
@@ -443,31 +443,6 @@ router.get("/errors/list", async (req, res) => {
     res.status(500).json({ code: 500, message: "服务器内部错误" });
   }
 });
-// ==================== 路由：/score ====================
-router.get("/score", async (req, res) => {
-  try {
-    const locations = parseMultiParam(req, "location", ["北京"]);
-    const sources = parseMultiParam(req, "source", ["QWeather"]);
-    const { startDate, endDate } = parseDateRange(req);
-
-    const scoreList = await TrustScore.findAll({
-      where: {
-        city: { [Op.in]: locations },
-        source: { [Op.in]: sources },
-        target_date: { [Op.between]: [startDate, endDate] },
-      },
-      order: [["target_date", "ASC"]],
-    });
-
-    res.json({ code: 200, message: "success", data: scoreList });
-  } catch (error) {
-    console.error("[GET /score] 查询失败:", error);
-    const status = error.message.includes("日期格式") ? 400 : 500;
-    res.status(status).json({ code: status, message: error.message || "服务器内部错误" });
-  }
-});
-
-// ==================== 导出 ====================
 module.exports = {
   getError,
   getOneError,

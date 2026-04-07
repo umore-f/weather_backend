@@ -105,7 +105,7 @@ async function syncHfLastWeatherDataDays(cityName) {
             console.log(`正在将${cityName}和风历史数据写入数据库...`);
             // 3. 存入数据库
             const hfMappedArray = mapHfWeatherDataDays0(response.data.weatherDaily, commonOptions);
-            // console.log("!!!!!!!!!",JSON.stringify(hfMappedArray[0], null, 2));
+            
             await DailyWeather.bulkCreate([hfMappedArray], {
                 updateOnDuplicate: FIELDS_DAYS 
             });

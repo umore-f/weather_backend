@@ -1,4 +1,4 @@
-const { getError, getOneError, getEWMAError } = require('./controllers/errorScore')
+const { getError, getOneError, getEWMAError } = require('./controllers/score')
 const {  setErrors,  setScore, } = require('./services/dbUpdater/realErrorScoreDbupdate/errorDbUpdater')
 const { selfConsistentBaseline } = require('./services/dbUpdater/realErrorScoreDbupdate/avgDbUpdater')
 const { getHistoryWeather, getNextWeather } = require('./controllers/weatherController')

@@ -15,7 +15,6 @@ router.get('/hf_city',async (req,res)=>{
         });
         res.json(response.data);
     } catch (error) {
-        console.log("!!!!!!!!",req.query);
         console.error('和风天气API错误:', error.response?.data || error.message);
         res.status(500).json({ error: '获取实时天气失败' });
     }
@@ -32,7 +31,6 @@ router.get('/hf_top',async (req,res)=>{
         });
         res.json(response.data);
     } catch (error) {
-        console.log("!!!!!!!!",req.query);
         console.error('和风天气API错误:', error.response?.data || error.message);
         res.status(500).json({ error: '获取实时天气失败' });
     }
@@ -49,7 +47,6 @@ router.get('/hf_now',async (req,res)=>{
         });
         res.json(response.data);
     } catch (error) {
-        console.log("!!!!!!!!",req.query);
         console.error('和风天气API错误:', error.response?.data || error.message);
         res.status(500).json({ error: '获取实时天气失败' });
     }
@@ -68,7 +65,6 @@ router.get('/hf_hours',async (req,res)=>{
         });
         res.json(response.data);
     } catch (error) {
-        console.log("!!!!!!!!",req.query);
         console.error('和风天气API错误:', error.response?.data || error.message);
         res.status(500).json({ error: '获取时天气失败' });
     }
@@ -87,7 +83,6 @@ router.get('/hf_next_days',async (req,res)=>{
         });
         res.json(response.data);
     } catch (error) {
-        console.log("!!!!!!!!",req.query);
         console.error('和风天气API错误:', error.response?.data || error.message);
         res.status(500).json({ error: '获取天天气失败' });
     }
@@ -110,7 +105,6 @@ router.get('/hf_last_days',async (req,res)=>{
         });
         res.json(response.data);
     } catch (error) {
-        console.log("!!!!!!!!",req.query);
         console.error('和风天气API错误:', error.response?.data || error.message);
         res.status(500).json({ error: '获取天天气失败' });
     }

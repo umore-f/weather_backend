@@ -3,7 +3,7 @@ const {
     calculateNormalizedAverageError,
     evaluateFieldCredibility
 } = require("../../fetcher/processingData");
-const { getError, getOneError } = require("../../../controllers/errorScore");
+const { getError, getOneError } = require("../../../controllers/errors");
 const { CITY_LIST, FIELDS_CAL, FIELD_CONFIGS, SOURCE_LIST } = require("../../../utils/constants");
 const { getNextWeather } = require("../../../controllers/weatherController");
 const { getRealData } = require('../../../controllers/realData');
