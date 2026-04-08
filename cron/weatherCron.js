@@ -57,7 +57,7 @@ const mutexErrors = new Mutex();
  */
 function startScheduler(options = {}) {
     const {
-        cronCities = process.env.CRON_CITIES || '35 12 * * *',
+        cronCities = process.env.CRON_CITIES || '00 13 * * *',
         cronErrors = process.env.CRON_ERRORS || '00 18 * * *',
         cronHours = process.env.CRON_HOURS || '00 18 * * *',
         timezone = process.env.TZ || 'Asia/Shanghai',
@@ -91,8 +91,8 @@ function startScheduler(options = {}) {
         const release = await mutexErrors.acquire();
         try {
             console.log(`[${new Date().toISOString()}] 定时任务触发：开始更新错误数据和评分`);
-            await retry(() => withTimeout(setReal(), 10 * 60 * 1000, 'setErrors'), 2, 5000);
-            await retry(() => withTimeout(setErrors(), 10 * 60 * 1000, 'setScore'), 2, 5000);
+            await retry(() => withTimeout(setReal(), 10 * 60 * 1000, 'setReal'), 2, 5000);
+            await retry(() => withTimeout(setErrors(), 10 * 60 * 1000, 'setErrors'), 2, 5000);
             await retry(() => withTimeout(setScore(), 10 * 60 * 1000, 'setScore'), 2, 5000);
             console.log(`[${new Date().toISOString()}] 错误数据和评分更新完成`);
         } catch (error) {

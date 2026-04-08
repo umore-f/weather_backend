@@ -61,7 +61,7 @@ function calculateNormalizedAverageError({ errors, source, target_date, city }, 
       console.warn(`缺少字段: ${field}`);
       continue;
     }
-    const { maxError, weight = 1 } = config;
+    const { maxError, weight } = config;
     let score;
     if (mode === 'exponential') {
       score = fieldErrorToScoreExp(error, maxError, steepness);
