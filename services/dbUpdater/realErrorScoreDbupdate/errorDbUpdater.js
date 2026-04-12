@@ -92,7 +92,7 @@ async function processCityErrors(city) {
         return;
     }
 
-    // 并发存储所有误差记录（可根据数据库连接池调整并发数）
+    // 并发存储所有误差记录
     await Promise.all(errors.map(error => upsertDailyErrorWithEWMA(error)));
 
     console.log(`✨ 城市 ${city} 处理完成，共 ${errors.length} 条误差记录`);

@@ -96,7 +96,7 @@ async function selfConsistentBaseline(city, field) {
     // 提取各数据源的该字段值
     const sources = forecasts.map(f => f.source);
     const values = forecasts.map(f => f[field]);
-    let weights = await getSourceWeights(city, sources, field, FIELD_CONFIGS);
+    let weights = await getSourceWeights(city, soruces, field, FIELD_CONFIGS);
     let baseline = weightedAverage(values, weights);
 
     for (let iter = 0; iter < MAX_ITERATIONS; iter++) {

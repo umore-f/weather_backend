@@ -57,10 +57,10 @@ const mutexErrors = new Mutex();
  */
 function startScheduler(options = {}) {
     const {
-        cronCities = process.env.CRON_CITIES || '00 13 * * *',
-        cronErrors = process.env.CRON_ERRORS || '00 18 * * *',
+        cronCities = process.env.CRON_CITIES || '00 14 * * *',
+        cronErrors = process.env.CRON_ERRORS || '00 17 * * *',
         cronHours = process.env.CRON_HOURS || '00 18 * * *',
-        timezone = process.env.TZ || 'Asia/Shanghai',
+        timezone = process.env.TZ || 'Asia/Shanghai'
     } = options;
 
     // 任务1：更新所有城市天气数据（日级）
