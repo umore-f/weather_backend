@@ -29,9 +29,10 @@ async function getHistoryWeather(cityName, dateParam) {
     return [];
   }
   return dailyWeatherList.map((record) => ({
-    cityName: record.city,
-    tempMax: record.temp_max,
-    tempMin: record.temp_min,
+    city: record.city,
+    source: record.source,
+    temp_max: record.temp_max,
+    temp_min: record.temp_min,
     temp: record.temp,
     humidity: record.humidity,
     precip: record.precip_total,
@@ -60,10 +61,10 @@ async function getNextWeather(cityName,dateParam) {
   // });
 
   return dailyWeatherList.map((record) => ({
-    cityName: record.city,
-    forecastTime: record.forecast_time,
-    tempMax: Number(record.temp_max),
-    tempMin: Number(record.temp_min),
+    city: record.city,
+    forecast_time: record.forecast_time,
+    temp_max: Number(record.temp_max),
+    temp_min: Number(record.temp_min),
     temp: Number(record.temp),
     humidity: Number(record.humidity),
     precip: Number(record.precip_total),

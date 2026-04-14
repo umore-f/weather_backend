@@ -19,11 +19,11 @@ async function getRealData(cityName, dateParam) {
     return null;
   }
   return {
-    cityName: record.city,
+    city: record.city,
     targetDate: record.target_date,
     temp: record.temp,
-    tempMax: record.temp_max,
-    tempMin: record.temp_min,
+    temp_max: record.temp_max,
+    temp_min: record.temp_min,
     humidity: record.humidity,
     precip: record.precip,
     pressure: record.pressure,

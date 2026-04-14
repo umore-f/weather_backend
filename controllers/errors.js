@@ -92,20 +92,14 @@ async function getError(cityName, source) {
     where: {
       city: cityName,
       source,
-      target_date: dateStr, // 直接等于，避免 like 低效
+      target_date: dateStr,
     },
   });
   if (!records.length) {
     console.log(`[getError] 未找到记录: ${cityName}, ${source}, ${dateStr}`);
     return [];
   }
-  return records.map(record => ({
-    cityName: record.city,
-    source: record.source,
-    targetDate: record.target_date,
-    errorType: record.error_type,
-    errorValue: record.error_value,
-  }));
+  return records.map(record => record.get({ plain: true }));
 }
 
 /**
@@ -132,13 +126,13 @@ async function getAllError(cityName, source) {
 /**
  * 获取指定城市、来源、误差类型的最新一条记录
  */
-async function getOneError(city, src, field) {
+async function getOneError(city, source) {
   const record = await DailyError.findOne({
-    where: { city, source: src, error_type: field },
+    where: { city, source },
     order: [["target_date", "DESC"]],
   });
   if (!record) {
-    console.log(`[getOneError] 未找到记录: ${city}, ${src}, ${field}`);
+    console.log(`[getOneError] 未找到记录: ${city}, ${source}`);
     return null;
   }
   return record;
@@ -150,7 +144,7 @@ async function getOneError(city, src, field) {
 async function getEWMAError(city, target_date) {
   const records = await DailyError.findAll({
     where: { city, target_date },
-    order: [["source", "ASC"], ["error_type", "ASC"]],
+    order: [["source", "ASC"]],
   });
   if (!records.length) return null;
   return records;

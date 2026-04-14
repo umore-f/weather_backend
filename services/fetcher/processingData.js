@@ -2,32 +2,43 @@ const { getOneError } = require('../../controllers/errors')
 const { fieldErrorToScoreExp, fieldErrorToScore } = require('../../utils/helpers')
 // 先取中位数获得基本真实值
 function getRobustRealValue(values) {
-  if (values.length === 0) return null;
-  if (values.length === 1) return values[0];
-  const sorted = [...values].sort((a, b) => a - b);
+  // 转换为数字，过滤掉无法转换的（如 null, undefined, 非数字字符串）
+  const numericValues = values.map(v => parseFloat(v)).filter(v => !isNaN(v));
+  
+  if (numericValues.length === 0) return null;
+  if (numericValues.length === 1) return numericValues[0];
+  
+  const sorted = [...numericValues].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
+  
   if (sorted.length % 2 === 0) {
+    if (sorted[mid - 1] + sorted[mid] === 0) return 0;
     return (sorted[mid - 1] + sorted[mid]) / 2;
   }
+  
   return sorted[mid];
 }
-
 // 计算权重 -> 融合数据 -> 不再使用中位数 
 async function getSourceWeights(city, sources, field, fieldConfigs) {
   const weights = [];
-  for (const src of sources) {
-    const latest = await getOneError(city, src, field)
-    const ewma = latest ? latest.ewma_error : (fieldConfigs[field].maxError / 2);
+  for (const source of sources) {
+    const latest = await getOneError(city, source)
+    const ewma = latest ? latest[`${field}_ewma_error`] : (fieldConfigs[field].maxError / 2);
     weights.push(1 / (ewma + 1e-6));
   }
   return weights;
 }
 
 // 计算新的 EWMA 值（纯函数）
-function computeNewEWMA(newError, previousEWMA, alpha, defaultMaxError) {
-  if (previousEWMA === null) {   // 第一条记录
-    const initEWMA = defaultMaxError / 2;
+function computeNewEWMA(newError, previousEWMA, alpha, defaultEWMA) {
+  console.log("!!!!!!!!!!!!!!",previousEWMA);
+  
+  if (previousEWMA === null) {
+    // 默认初始值是最大值的一半
+    const initEWMA = defaultEWMA / 2;
+    
     return alpha * newError + (1 - alpha) * initEWMA;
+
   }
   return alpha * newError + (1 - alpha) * previousEWMA;
 }
@@ -78,35 +89,44 @@ function calculateNormalizedAverageError({ errors, source, target_date, city }, 
   return { source, target_date, city, totalScore: Math.round(total * 100) / 100, fieldScores, window_days };
 }
 // 误差计算
-function evaluateFieldCredibility(field, realData, sources) {
-  const realValue = realData[field];
-  if (realValue === null || realValue === undefined) {
-    throw new Error(`真实数据中缺少字段 ${field} 或值为 null`);
+function calculateErrors(realData, forecastDataArray) {
+  const { city: realCity, targetDate: realTargetDate } = realData;
+
+  const diff = (pred, real) => (pred != null && real != null ? pred - real : null);
+
+  const errors = [];
+  for (const fc of forecastDataArray) {
+    if (fc.city !== realCity || fc.forecast_time !== realTargetDate) continue;
+
+    errors.push({
+      city: fc.city,
+      source: fc.source,
+      target_date: fc.forecast_time,
+      error_values: {
+        temp: diff(fc.temp, realData.temp),
+        temp_ewma_error: null,
+        temp_max: diff(fc.temp_max, realData.temp_max),
+        temp_max_ewma_error: null,
+        temp_min: diff(fc.temp_min, realData.temp_min),
+        temp_min_ewma_error: null,
+        humidity: diff(fc.humidity, realData.humidity),
+        humidity_ewma_error: null,
+        precip: diff(fc.precip, realData.precip),
+        precip_ewma_error: null,
+        pressure: diff(fc.pressure, realData.pressure),
+        pressure_ewma_error: null,
+      }
+
+    });
   }
-
-  const results = sources.map(source => {
-    const pred = source[field];
-    let error = null;
-    if (pred !== null && pred !== undefined) {
-      error = Number(Math.abs(pred - realValue).toFixed(2));
-    }
-    return {
-      city: source.cityName,
-      target_date: source.forecastTime,
-      source: source.source,
-      error_value: error,
-      error_type: field
-    };
-  }).filter(item => item.error_value !== null); // 只保留有预报值的源
-
-  results.sort((a, b) => a.error_value - b.error_value);
-  return results;
+  return errors;
 }
+
 module.exports = {
   getRobustRealValue,
   computeNewEWMA,
   getSourceWeights,
   isValidWeatherValue,
   calculateNormalizedAverageError,
-  evaluateFieldCredibility
+  calculateErrors
 }

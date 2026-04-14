@@ -36,13 +36,13 @@ const CITY_LIST_TEST = [
     '北京'
 ];
 // 需要计算的字段
-const FIELDS_CAL = ['tempMax', 'tempMin', 'temp', 'humidity', 'precip', 'pressure']
+const FIELDS_CAL = ['temp_max', 'temp_min', 'temp', 'humidity', 'precip', 'pressure']
 // 数据源
 const SOURCE_LIST = ['QWeather','tomorrow.io','visualcrossing']
 const FIELD_CONFIGS = {
   temp:     { maxError: 3, weight: 3 },   // 温度最重要
-  tempMax:  { maxError: 3, weight: 2 },   // 最高温次之
-  tempMin:  { maxError: 3, weight: 2 },
+  temp_max:  { maxError: 3, weight: 2 },   // 最高温次之
+  temp_min:  { maxError: 3, weight: 2 },
   humidity: { maxError: 15, weight: 2 },  // 湿度中等
   precip:   { maxError: 5, weight: 2 },   // 降水重要但难，权重适中
   pressure: { maxError: 15, weight: 1 }   // 气压权重最低
