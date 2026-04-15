@@ -4,18 +4,18 @@ const { fieldErrorToScoreExp, fieldErrorToScore } = require('../../utils/helpers
 function getRobustRealValue(values) {
   // 转换为数字，过滤掉无法转换的（如 null, undefined, 非数字字符串）
   const numericValues = values.map(v => parseFloat(v)).filter(v => !isNaN(v));
-  
+
   if (numericValues.length === 0) return null;
   if (numericValues.length === 1) return numericValues[0];
-  
+
   const sorted = [...numericValues].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  
+
   if (sorted.length % 2 === 0) {
     if (sorted[mid - 1] + sorted[mid] === 0) return 0;
     return (sorted[mid - 1] + sorted[mid]) / 2;
   }
-  
+
   return sorted[mid];
 }
 // 计算权重 -> 融合数据 -> 不再使用中位数 
@@ -31,12 +31,12 @@ async function getSourceWeights(city, sources, field, fieldConfigs) {
 
 // 计算新的 EWMA 值（纯函数）
 function computeNewEWMA(newError, previousEWMA, alpha, defaultEWMA) {
-  console.log("!!!!!!!!!!!!!!",previousEWMA);
-  
+  console.log("!!!!!!!!!!!!!!", previousEWMA);
+
   if (previousEWMA === null) {
     // 默认初始值是最大值的一半
     const initEWMA = defaultEWMA / 2;
-    
+
     return alpha * newError + (1 - alpha) * initEWMA;
 
   }
@@ -61,17 +61,24 @@ function isValidWeatherValue(field, value) {
   }
 }
 // 计算得分
-function calculateNormalizedAverageError({ errors, source, target_date, city }, fieldConfigs, options = {}) {
+function calculateNormalizedAverageError(ewmaErrors, fieldConfigs, options = {}) {
   const { mode = 'linear', steepness = 5, window_days = 7 } = options;
+  const { city, source, target_date } = ewmaErrors
   let totalScore = 0, totalWeight = 0;
   const fieldScores = {};
 
-  for (const [field, error] of Object.entries(errors)) {
-    const config = fieldConfigs[field];
+  for (const [field, error] of Object.entries(ewmaErrors)) {
+    const suffix = "_ewma_error";
+
+    if (!field.includes(suffix)) continue
+
+    const cleaned = field.replace(suffix, '');
+    const config = fieldConfigs[cleaned];
     if (!config) {
       console.warn(`缺少字段: ${field}`);
       continue;
     }
+
     const { maxError, weight } = config;
     let score;
     if (mode === 'exponential') {

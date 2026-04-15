@@ -104,6 +104,7 @@ async function setErrors() {
     console.log(`========== 任务结束，耗时 ${duration} 秒 ==========`);
 }
 
+
 async function setErrors1(targetDate) {
     console.log('========== 日误差 EWMA 批量计算开始 ==========');
     const startTime = Date.now();
@@ -117,7 +118,5 @@ async function setErrors1(targetDate) {
     console.log(`========== 任务结束，耗时 ${duration} 秒 ==========`);
 }
 module.exports = {
-    setErrors1,
     setErrors,
-    computeCityErrors
 };

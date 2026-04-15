@@ -3,6 +3,7 @@ const { getError, getOneError, getEWMAError } = require('./controllers/score')
 
 const {  setErrors1,setScore, computeCityErrors } = require('./services/dbUpdater/realErrorScoreDbupdate/errorDbUpdater')
 
+const {  fetchErrorsByCity, setScore1 } = require('./services/dbUpdater/realErrorScoreDbupdate/scoreDbUpdater')
 
 const { selfConsistentBaseline,setReal1 } = require('./services/dbUpdater/realErrorScoreDbupdate/avgDbUpdater')
 
@@ -27,15 +28,17 @@ const { TrustScore } = db
 // async function name() {
 //     // const r = await getRealData('北京','2026-04-08')
 //     // const r1  = await getNextWeather('北京','2026-04-08')
-//     let r3 = []
-//     for (const city of CITY_LIST) {
-//         const r2 = await computeCityErrors(city,'2026-04-08')
-//         r3.push(r2)
+//     // let r3 = []
+//     // for (const city of CITY_LIST) {
+//     //     const r2 = await computeCityErrors(city,'2026-04-08')
+//     //     r3.push(r2)
         
-//     }
-//     const r4 = r3.flat()
-//     // const r2 = await computeCityErrors('北京','2026-04-08')
-//     console.log("!!!!!!!!!!",r4);
+//     // }
+//     // const r4 = r3.flat()
+//     // // const r2 = await computeCityErrors('北京','2026-04-08')
+//     // console.log("!!!!!!!!!!",r4);
+//     const r1 = await fetchErrorsByCity('北京','2026-04-08')
+//     console.log("!!!!!!!!!!",r1);
 // }
 // name()
 // const errors = calculateErrors({
@@ -111,6 +114,7 @@ const dateList = [
 ];
 async function name() {
     for (const dateStr of dateList) {
+        setScore1(dateStr)
         // await setReal1(dateStr)
         // await setErrors1(dateStr)
         

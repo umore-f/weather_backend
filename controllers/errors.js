@@ -46,7 +46,6 @@ function parseMultiParam(req, key, defaultValue = []) {
  * @returns {{ startDate: string, endDate: string }}
  */
 function parseDateRange(req) {
-
   const startParam = req.query["date[start]"];
   const endParam = req.query["date[end]"];
   const singleDateParam = req.query.date;
@@ -58,7 +57,7 @@ function parseDateRange(req) {
     if (!start.isValid() || !end.isValid()) {
       throw new Error("日期格式错误，请使用 YYYY-MM-DD");
     }
-    // 确保 startDate ≤ endDate（数据库查询时使用 BETWEEN startDate AND endDate）
+    // 确保 startDate ≤ endDate
     const startDate = start.isBefore(end) ? start.format("YYYY-MM-DD") : end.format("YYYY-MM-DD");
     const endDate = start.isBefore(end) ? end.format("YYYY-MM-DD") : start.format("YYYY-MM-DD");
     return { startDate, endDate };
@@ -84,7 +83,8 @@ function parseDateRange(req) {
 }
 
 /**
- * 获取指定城市、来源、昨天日期的误差记录
+ * 获取指定城市、来源、昨天日期的误差记录（宽表）
+ * @returns {Promise<Object[]>} 满足条件的 DailyError 实例数组（plain object）
  */
 async function getError(cityName, source) {
   const dateStr = get_yesterday_formatted();
@@ -94,42 +94,41 @@ async function getError(cityName, source) {
       source,
       target_date: dateStr,
     },
+    raw: true,
   });
   if (!records.length) {
     console.log(`[getError] 未找到记录: ${cityName}, ${source}, ${dateStr}`);
     return [];
   }
-  return records.map(record => record.get({ plain: true }));
+  return records;
 }
 
 /**
- * 获取指定城市、来源的全部误差记录
+ * 获取指定城市、来源的全部误差记录（宽表）
+ * @returns {Promise<Object[]>} 按日期升序排列的 plain object 数组
  */
 async function getAllError(cityName, source) {
   const records = await DailyError.findAll({
     where: { city: cityName, source },
     order: [["target_date", "ASC"]],
+    raw: true,
   });
   if (!records.length) {
     console.log(`[getAllError] 未找到记录: ${cityName}, ${source}`);
     return [];
   }
-  return records.map(record => ({
-    cityName: record.city,
-    source: record.source,
-    targetDate: record.target_date,
-    errorType: record.error_type,
-    errorValue: record.error_value,
-  }));
+  return records;
 }
 
 /**
- * 获取指定城市、来源、误差类型的最新一条记录
+ * 获取指定城市、来源的最新一条记录（宽表）
+ * @returns {Promise<Object|null>} plain object 或 null
  */
 async function getOneError(city, source) {
   const record = await DailyError.findOne({
     where: { city, source },
     order: [["target_date", "DESC"]],
+    raw: true,
   });
   if (!record) {
     console.log(`[getOneError] 未找到记录: ${city}, ${source}`);
@@ -139,12 +138,14 @@ async function getOneError(city, source) {
 }
 
 /**
- * 获取指定城市、日期的所有误差记录（用于 EWMA 计算）
+ * 获取指定城市、日期的所有误差记录（宽表，用于 EWMA 计算）
+ * @returns {Promise<Object[]|null>} plain object 数组或 null
  */
 async function getEWMAError(city, target_date) {
   const records = await DailyError.findAll({
     where: { city, target_date },
     order: [["source", "ASC"]],
+    raw: true,
   });
   if (!records.length) return null;
   return records;
@@ -153,12 +154,10 @@ async function getEWMAError(city, target_date) {
 // ==================== 路由：/errors ====================
 router.get("/errors", async (req, res) => {
   try {
-    // 解析参数
     const locations = parseMultiParam(req, "location", ["北京"]);
     const sources = parseMultiParam(req, "source", ["QWeather"]);
     const { startDate, endDate } = parseDateRange(req);
 
-    // 查询数据库
     const errorsList = await DailyError.findAll({
       where: {
         city: { [Op.in]: locations },
@@ -177,19 +176,35 @@ router.get("/errors", async (req, res) => {
 });
 
 /**
- * 获取指定 sources 和 error_type 的误差值统计（按 source 分组）
+ * 获取指定 sources 和 metric 的误差值统计（按 source 分组）
  * GET /api/errors/statistics
  * Query参数:
- *   source       string|array 必填，支持逗号分隔或多次传入（如 source=QWeather&source=CMA）
- *   error_type   string       必填
- *   start_date   string       可选，开始日期 YYYY-MM-DD
- *   end_date     string       可选，结束日期 YYYY-MM-DD
+ *   source       string|array 必填
+ *   metric       string       必填 (humidity, precip, pressure, temp, temp_max, temp_min)
+ *   city         string|array 可选
+ *   start_date   string       可选
+ *   end_date     string       可选
  */
 router.get("/errors/statistics", async (req, res) => {
   try {
-    const { error_type, start_date, end_date } = req.query;
+    const { start_date, end_date, metric } = req.query;
 
-    // 1. 解析 source 为数组
+    const metricToField = {
+      humidity: 'humidity_ewma_error',
+      precip: 'precip_ewma_error',
+      pressure: 'pressure_ewma_error',
+      temp: 'temp_ewma_error',
+      temp_max: 'temp_max_ewma_error',
+      temp_min: 'temp_min_ewma_error',
+    };
+    if (!metric || !metricToField[metric]) {
+      return res.status(400).json({
+        code: 400,
+        message: "参数 metric 必须为 humidity, precip, pressure, temp, temp_max, temp_min 之一",
+      });
+    }
+    const targetField = metricToField[metric];
+
     let sources = [];
     if (req.query.source) {
       if (typeof req.query.source === 'string') {
@@ -207,11 +222,7 @@ router.get("/errors/statistics", async (req, res) => {
     if (!sources.length) {
       return res.status(400).json({ code: 400, message: "缺少必要参数: source 至少需要一个值" });
     }
-    if (!error_type) {
-      return res.status(400).json({ code: 400, message: "缺少必要参数: error_type" });
-    }
 
-    // 2. 解析 city 为数组（可选）
     let cities = [];
     if (req.query.city) {
       if (typeof req.query.city === 'string') {
@@ -226,9 +237,7 @@ router.get("/errors/statistics", async (req, res) => {
       else if (Array.isArray(arr)) cities = arr;
       cities = cities.map(s => s.trim()).filter(Boolean);
     }
-    // 如果 cities 有值，则作为过滤条件；否则不限制城市
 
-    // 3. 构建日期过滤条件
     const dateFilter = {};
     if (start_date && end_date) {
       dateFilter[Op.between] = [start_date, end_date];
@@ -238,7 +247,6 @@ router.get("/errors/statistics", async (req, res) => {
       dateFilter[Op.lte] = end_date;
     }
 
-    // 4. 分位数计算函数
     function getQuantile(sortedArr, q) {
       if (sortedArr.length === 0) return null;
       const pos = (sortedArr.length - 1) * q;
@@ -250,9 +258,8 @@ router.get("/errors/statistics", async (req, res) => {
       return sortedArr[base];
     }
 
-    // 5. 并发查询每个 source
     const promises = sources.map(async (source) => {
-      const where = { source, error_type };
+      const where = { source };
       if (Object.keys(dateFilter).length) {
         where.target_date = dateFilter;
       }
@@ -262,16 +269,19 @@ router.get("/errors/statistics", async (req, res) => {
 
       const records = await DailyError.findAll({
         where,
-        attributes: ["error_value"],
-        order: [["error_value", "ASC"]],
+        attributes: [targetField],
         raw: true,
       });
 
-      if (!records.length) {
+      let values = records
+        .map(record => record[targetField])
+        .filter(v => v !== null && v !== undefined);
+
+      if (values.length === 0) {
         return { source, data: [] };
       }
 
-      const values = records.map(r => r.error_value);
+      values.sort((a, b) => a - b);
       const min = values[0];
       const max = values[values.length - 1];
       const median = getQuantile(values, 0.5);
@@ -282,7 +292,6 @@ router.get("/errors/statistics", async (req, res) => {
     });
 
     const results = await Promise.all(promises);
-
     res.json({ code: 200, message: "success", data: results });
   } catch (error) {
     console.error("[GET /errors/statistics] 查询失败:", error);
@@ -291,73 +300,65 @@ router.get("/errors/statistics", async (req, res) => {
 });
 
 /**
- * 根据城市数组、来源数组、日期范围获取每个来源下各误差类型的平均误差值（聚合所有城市）
+ * 聚合查询：按来源分组，返回各气象要素的平均 EWMA 误差
  * GET /api/errors/avg-by-fields
  * Query参数:
- *   city         string|array  必填，支持逗号分隔或 city[] 形式
- *   source       string|array  必填，支持逗号分隔或 source[] 形式
- *   date         string        可选，单日期 YYYY-MM-DD
- *   date[start]  string        可选，开始日期 YYYY-MM-DD
- *   date[end]    string        可选，结束日期 YYYY-MM-DD
- * 日期处理规则与 /errors、/score 完全一致
+ *   city         string|array 必填
+ *   source       string|array 必填
+ *   日期参数使用 parseDateRange 规则（date, date[start]/date[end], 或默认最近7天）
  */
 router.get("/errors/avg-by-fields", async (req, res) => {
   try {
-    // 解析城市数组（必填）
-    let cities = parseMultiParam(req, "city", []);
+    const cities = parseMultiParam(req, "city", []);
     if (!cities.length) {
       return res.status(400).json({ code: 400, message: "缺少必要参数: city" });
     }
 
-    // 解析来源数组（必填）
-    let sources = parseMultiParam(req, "source", []);
+    const sources = parseMultiParam(req, "source", []);
     if (!sources.length) {
       return res.status(400).json({ code: 400, message: "缺少必要参数: source" });
     }
 
-    const dateFilter = {};
-    const { end_date, start_date } = req.query;
-    if (start_date && end_date) {
-      dateFilter[Op.between] = [start_date, end_date];
-    } else if (start_date) {
-      dateFilter[Op.gte] = start_date;
-    } else if (end_date) {
-      dateFilter[Op.lte] = end_date;
+    // 获取日期范围并转换为 Sequelize 条件
+    const { startDate, endDate } = parseDateRange(req);
+    const dateCondition = { [Op.between]: [startDate, endDate] };
+
+    const metricFields = {
+      humidity: 'humidity_ewma_error',
+      precip: 'precip_ewma_error',
+      pressure: 'pressure_ewma_error',
+      temp: 'temp_ewma_error',
+      temp_max: 'temp_max_ewma_error',
+      temp_min: 'temp_min_ewma_error',
+    };
+
+    const attributes = ['source'];
+    for (const [metric, field] of Object.entries(metricFields)) {
+      attributes.push([sequelize.fn('AVG', sequelize.col(field)), metric]);
     }
 
-    // 聚合查询：按 source 和 error_type 分组，计算平均值（不按 city 分组，实现跨城市聚合）
+    const where = {
+      city: { [Op.in]: cities },
+      source: { [Op.in]: sources },
+      target_date: dateCondition,
+    };
+
     const results = await DailyError.findAll({
-      where: {
-        city: { [Op.in]: cities },
-        source: { [Op.in]: sources },
-        target_date: dateFilter,
-      },
-      attributes: [
-        "source",
-        "error_type",
-        [sequelize.fn("AVG", sequelize.col("error_value")), "avg_error_value"],
-      ],
-      group: ["source", "error_type"],
+      where,
+      attributes,
+      group: ['source'],
       raw: true,
     });
 
-    // 转换为按 source 分组的对象：{ source: { error_type: avg_value } }
-    const sourceMap = {};
-    results.forEach(item => {
-      const src = item.source;
-      const errorType = item.error_type;
-      const avgVal = parseFloat(item.avg_error_value);
-      if (!sourceMap[src]) {
-        sourceMap[src] = {};
+    const formatted = results.map(row => {
+      const source = row.source;
+      const data = {};
+      for (const metric of Object.keys(metricFields)) {
+        const val = row[metric];
+        data[metric] = val !== null && !isNaN(val) ? parseFloat(val) : null;
       }
-      sourceMap[src][errorType] = avgVal;
+      return { source, data };
     });
-
-    // 转换为最终数组格式
-    const formatted = Object.keys(sourceMap).map(source => ({
-      source: source,
-      data: sourceMap[source]
-    }));
 
     res.json({ code: 200, message: "success", data: formatted });
   } catch (error) {
@@ -367,50 +368,39 @@ router.get("/errors/avg-by-fields", async (req, res) => {
 });
 
 /**
- * 多条件查询误差数据（支持分页）
+ * 多条件查询误差数据（支持分页，返回宽表原始数据）
  * GET /api/errors/list
  * Query参数:
- *   city         string|array  可选，支持逗号分隔或 city[]，默认查询所有城市
- *   source       string|array  可选，支持逗号分隔或 source[]，默认查询所有来源
- *   error_type   string|array  可选，支持逗号分隔或 error_type[]，默认查询所有误差类型
- *   date         string        可选，单日期 YYYY-MM-DD
- *   date[start]  string        可选，开始日期 YYYY-MM-DD
- *   date[end]    string        可选，结束日期 YYYY-MM-DD
- *   page         number        可选，页码，默认 1
- *   pageSize     number        可选，每页条数，默认 20
- * 日期处理规则与 /errors、/score 完全一致
+ *   city         string|array 可选
+ *   source       string|array 可选
+ *   page         number       默认1
+ *   pageSize     number       默认20
+ *   sortField    string       可选，模型中的任意字段
+ *   sortOrder    ASC/DESC     可选
+ *   日期参数使用 parseDateRange 规则
  */
 router.get("/errors/list", async (req, res) => {
   try {
-    // 解析城市、来源、字段、分页、日期（复用之前的代码）
-    let cities = parseMultiParam(req, "city", []);
-    let sources = parseMultiParam(req, "source", []);
-    let errorTypes = parseMultiParam(req, "error_type", []);
+    const cities = parseMultiParam(req, "city", []);
+    const sources = parseMultiParam(req, "source", []);
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const pageSize = Math.max(1, parseInt(req.query.pageSize) || 20);
     const offset = (page - 1) * pageSize;
-    const dateFilter = {};
-    const { end_date, start_date } = req.query;
-    if (start_date && end_date) {
-      dateFilter[Op.between] = [start_date, end_date];
-    } else if (start_date) {
-      dateFilter[Op.gte] = start_date;
-    } else if (end_date) {
-      dateFilter[Op.lte] = end_date;
-    }
+
     const where = {};
     if (cities.length) where.city = { [Op.in]: cities };
     if (sources.length) where.source = { [Op.in]: sources };
-    if (errorTypes.length) where.error_type = { [Op.in]: errorTypes };
-    where.target_date = dateFilter;
 
-    // 排序参数
+    // 日期范围处理
+    const { startDate, endDate } = parseDateRange(req);
+    where.target_date = { [Op.between]: [startDate, endDate] };
+
     const sortField = req.query.sortField;
     const sortOrder = req.query.sortOrder;
-    let order = [["target_date", "DESC"], ["city", "ASC"], ["source", "ASC"]];
+    let order = [['target_date', 'DESC'], ['city', 'ASC'], ['source', 'ASC']];
     if (sortField && sortOrder) {
-      const allowed = ['error_value', 'ewma_error', 'city', 'source', 'target_date', 'error_type'];
-      if (allowed.includes(sortField)) {
+      const modelAttributes = Object.keys(DailyError.getAttributes());
+      if (modelAttributes.includes(sortField)) {
         const direction = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
         order = [[sortField, direction]];
       }
@@ -429,14 +419,20 @@ router.get("/errors/list", async (req, res) => {
       message: "success",
       data: {
         list: rows,
-        pagination: { page, pageSize, total: count, totalPages: Math.ceil(count / pageSize) }
-      }
+        pagination: {
+          page,
+          pageSize,
+          total: count,
+          totalPages: Math.ceil(count / pageSize),
+        },
+      },
     });
   } catch (error) {
     console.error("[GET /errors/list] 查询失败:", error);
     res.status(500).json({ code: 500, message: "服务器内部错误" });
   }
 });
+
 module.exports = {
   getError,
   getOneError,

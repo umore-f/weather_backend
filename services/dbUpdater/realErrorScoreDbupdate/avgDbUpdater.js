@@ -1,6 +1,5 @@
 const { getRobustRealValue } = require("../../fetcher/processingData");
 const { getHistoryWeather, getNextWeather } = require('../../../controllers/weatherController');
-const { getEWMAError } = require('../../../controllers/errors');
 const { getRealDataList } = require('../../../controllers/realData');
 const { getSourceWeights } = require('../../fetcher/processingData');
 const { CITY_LIST, FIELDS_CAL, FIELD_CONFIGS } = require("../../../utils/constants");
@@ -118,7 +117,6 @@ async function selfConsistentBaseline(city, field ,targetDate) {
  */
 async function getSelfConsistentBaseline(city, targetDate) {
     console.log(`🔄 [自洽迭代] 开始处理城市: ${city}`);
-    // const targetDate = get_yesterday_formatted(); // 统一处理昨天日期
     const fieldBaselines = {};
     for (const field of FIELDS_CAL) {
         try {
@@ -150,16 +148,16 @@ async function getSelfConsistentBaseline(city, targetDate) {
 async function setReal() {
     console.log('========== 基准真值计算任务开始 ==========');
     const startTime = Date.now();
-
+    const targetDate = get_yesterday_formatted();
     // 顺序处理城市（避免并发请求过多导致接口压力）
     for (const city of CITY_LIST) {
         const isCold = await isColdStartCity(city);
         console.log(`🌆 城市 ${city} | 冷启动状态: ${isCold ? '是（使用中位数法）' : '否（使用自洽迭代法）'}`);
         try {
             if (isCold) {
-                await getRobustBaseline(city);
+                await getRobustBaseline(city, targetDate);
             } else {
-                await getSelfConsistentBaseline(city);
+                await getSelfConsistentBaseline(city, targetDate);
             }
         } catch (error) {
             console.error(`❌ 城市 ${city} 处理失败:`, error.message);
@@ -170,6 +168,8 @@ async function setReal() {
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log(`========== 基准真值计算结束，耗时 ${duration} 秒 ==========`);
 }
+
+
 async function setReal1(targetDate) {
     console.log('========== 基准真值计算任务开始 ==========');
     const startTime = Date.now();
@@ -194,7 +194,5 @@ async function setReal1(targetDate) {
     console.log(`========== 基准真值计算结束，耗时 ${duration} 秒 ==========`);
 }
 module.exports = {
-    setReal1,
     setReal,
-    isColdStartCity
 };

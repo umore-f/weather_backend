@@ -10,29 +10,9 @@ const { calculateNormalizedAverageError } = require('../../fetcher/processingDat
  * @returns {Promise<Array>} 返回格式：
  *   [{ target_date, source, city, error: { temp: number, humidity: number, ... } }]
  */
-async function fetchErrorsByCity(city) {
-    const targetDate = get_yesterday_formatted(); 
+async function fetchErrorsByCity(city, targetDate) {
     const rawErrors = await getEWMAError(city, targetDate); // 返回所有数据源的误差数组
-    const errorsByDateAndSource = [];
-
-    for (const source of SOURCE_LIST) {
-        // 提取该数据源下各个误差类型的 EWMA 值
-        const errorMap = rawErrors
-            .filter(item => item.source === source)
-            .reduce((acc, item) => {
-                acc[item.error_type] = item.ewma_error;
-                return acc;
-            }, {});
-
-        errorsByDateAndSource.push({
-            target_date: targetDate,
-            source,
-            city,
-            error: errorMap,
-        });
-    }
-
-    return errorsByDateAndSource;
+    return rawErrors;
 }
 
 /**
@@ -40,10 +20,10 @@ async function fetchErrorsByCity(city) {
  * @param {Object} errorItem - fetchErrorsByCity 返回的单项数据
  */
 async function computeAndStoreScore(errorItem) {
-    const { error, source, target_date, city } = errorItem;
+    // const { error, source, target_date, city } = errorItem;
 
     const scoreResult = calculateNormalizedAverageError(
-        { errors: error, source, target_date, city },
+        errorItem,
         FIELD_CONFIGS
     );
 
@@ -53,12 +33,12 @@ async function computeAndStoreScore(errorItem) {
         city: resultCity,
         totalScore,
         fieldScores: {
-            humidity,
-            precip,
-            pressure,
-            temp,
-            tempMax,
-            tempMin,
+            humidity_ewma_error,
+            precip_ewma_error,
+            pressure_ewma_error,
+            temp_ewma_error,
+            temp_max_ewma_error,
+            temp_min_ewma_error,
         },
         window_days = 7,
     } = scoreResult;
@@ -69,12 +49,12 @@ async function computeAndStoreScore(errorItem) {
         target_date: resultDate,
         window_days,
         total_score: totalScore,
-        humidity_score: humidity,
-        precip_score: precip,
-        pressure_score: pressure,
-        temp_score: temp,
-        temp_max_score: tempMax,
-        temp_min_score: tempMin,
+        humidity_score: humidity_ewma_error,
+        precip_score: precip_ewma_error,
+        pressure_score: pressure_ewma_error,
+        temp_score: temp_ewma_error,
+        temp_max_score: temp_max_ewma_error,
+        temp_min_score: temp_min_ewma_error,
     });
 
     console.log(`✅ 存储成功 | 城市: ${resultCity} | 日期: ${resultDate} | 数据源: ${resultSource}`);
@@ -84,9 +64,9 @@ async function computeAndStoreScore(errorItem) {
  * 处理单个城市的所有数据（拉取误差 → 计算分数 → 存储）
  * @param {string} city - 城市名称
  */
-async function processCity(city) {
+async function processCity(city, targetDate) {
     console.log(`🚀 开始处理城市: ${city}`);
-    const errorItems = await fetchErrorsByCity(city);
+    const errorItems = await getEWMAError(city, targetDate);
     await Promise.all(errorItems.map(item => computeAndStoreScore(item)));
     console.log(`✨ 城市 ${city} 处理完成，共 ${errorItems.length} 条记录`);
 }
@@ -97,15 +77,25 @@ async function processCity(city) {
 async function setScore() {
     console.log('========== 信任分批量计算任务开始 ==========');
     const startTime = Date.now();
-
+    const dateStr = get_yesterday_formatted()
     for (const city of CITY_LIST) {
-        await processCity(city);
+        await processCity(city, dateStr);
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log(`========== 任务结束，耗时 ${duration} 秒 ==========`);
 }
 
+async function setScore1(dateStr) {
+    console.log('========== 信任分批量计算任务开始 ==========');
+    const startTime = Date.now();
+    for (const city of CITY_LIST) {
+        await processCity(city, dateStr);
+    }
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.log(`========== 任务结束，耗时 ${duration} 秒 ==========`);
+}
 module.exports = {
     setScore,
 };
