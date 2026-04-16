@@ -46,8 +46,8 @@ function parseMultiParam(req, key, defaultValue = []) {
  * @returns {{ startDate: string, endDate: string }}
  */
 function parseDateRange(req) {
-  const startParam = req.query["date[start]"];
-  const endParam = req.query["date[end]"];
+  const startParam = req.query["start_date"];
+  const endParam = req.query["end_date"];
   const singleDateParam = req.query.date;
 
   // 情况1：明确的范围参数
@@ -363,6 +363,168 @@ router.get("/errors/avg-by-fields", async (req, res) => {
     res.json({ code: 200, message: "success", data: formatted });
   } catch (error) {
     console.error("[GET /errors/avg-by-fields] 查询失败:", error);
+    res.status(500).json({ code: 500, message: "服务器内部错误" });
+  }
+});
+/**
+ * 折线图数据：按数据源分组，每天每个数据源下多城市的平均误差值（聚合）
+ * GET /api/errors/trend
+ * Query参数:
+ *   cities       string|array 必填，支持逗号分隔或 city[]
+ *   sources      string|array 必填，支持逗号分隔或 source[]
+ *   metric       string       必填，humidity, precip, pressure, temp, temp_max, temp_min
+ *   start_date   string       可选，YYYY-MM-DD
+ *   end_date     string       可选，YYYY-MM-DD
+ *   日期参数也可使用 date/date[start]/date[end] 规则（复用 parseDateRange）
+ */
+router.get("/errors/trend", async (req, res) => {
+  try {
+    // 1. 解析必填参数
+    const cities = parseMultiParam(req, "city", []);
+    if (!cities.length) {
+      return res.status(400).json({ code: 400, message: "缺少必要参数: cities" });
+    }
+
+    const sources = parseMultiParam(req, "source", []);
+    if (!sources.length) {
+      return res.status(400).json({ code: 400, message: "缺少必要参数: sources" });
+    }
+
+    const { metric } = req.query;
+    const metricToField = {
+      humidity: 'humidity_ewma_error',
+      precip: 'precip_ewma_error',
+      pressure: 'pressure_ewma_error',
+      temp: 'temp_ewma_error',
+      temp_max: 'temp_max_ewma_error',
+      temp_min: 'temp_min_ewma_error',
+    };
+    if (!metric || !metricToField[metric]) {
+      return res.status(400).json({
+        code: 400,
+        message: "参数 metric 必须为 humidity, precip, pressure, temp, temp_max, temp_min 之一",
+      });
+    }
+    const targetField = metricToField[metric];
+
+    // 2. 日期范围
+    const { startDate, endDate } = parseDateRange(req);
+    const dateCondition = { [Op.between]: [startDate, endDate] };
+    // 3. 聚合查询：按 source 和 target_date 分组，计算平均值
+    const results = await DailyError.findAll({
+      where: {
+        city: { [Op.in]: cities },
+        source: { [Op.in]: sources },
+        target_date: dateCondition,
+      },
+      attributes: [
+        'source',
+        'target_date',
+        [sequelize.fn('AVG', sequelize.col(targetField)), 'avg_value'],
+      ],
+      group: ['source', 'target_date'],
+      order: [['source', 'ASC'], ['target_date', 'ASC']],
+      raw: true,
+    });
+
+    // 4. 重组数据：按 source 分组，每个 source 下为 { date, value } 数组
+    const grouped = new Map(); // source -> array of { date, value }
+    for (const row of results) {
+      const source = row.source;
+      const date = row.target_date;
+      const value = row.avg_value !== null ? parseFloat(row.avg_value) : null;
+      if (!grouped.has(source)) {
+        grouped.set(source, []);
+      }
+      grouped.get(source).push({ date, value });
+    }
+
+    // 5. 转换为最终数组格式
+    const data = Array.from(grouped.entries()).map(([source, points]) => ({
+      source,
+      data: points,
+    }));
+
+    res.json({ code: 200, message: "success", data });
+  } catch (error) {
+    console.error("[GET /errors/trend] 查询失败:", error);
+    res.status(500).json({ code: 500, message: "服务器内部错误" });
+  }
+});
+
+/**
+ * 热力图数据：按城市和来源分组，返回指定指标的平均误差值
+ * GET /api/errors/heatmap
+ * Query参数:
+ *   cities       string|array 必填，支持逗号分隔或 city[]
+ *   sources      string|array 必填，支持逗号分隔或 source[]
+ *   metric       string       必填，humidity, precip, pressure, temp, temp_max, temp_min
+ *   日期参数可选，复用 parseDateRange 规则（默认最近7天）
+ */
+router.get("/errors/heatmap", async (req, res) => {
+  try {
+    // 1. 解析必填参数
+    const cities = parseMultiParam(req, "city", []);
+    if (!cities.length) {
+      return res.status(400).json({ code: 400, message: "缺少必要参数: cities" });
+    }
+
+    const sources = parseMultiParam(req, "source", []);
+    if (!sources.length) {
+      return res.status(400).json({ code: 400, message: "缺少必要参数: sources" });
+    }
+
+    const { metric } = req.query;
+    const metricToField = {
+      humidity: 'humidity_ewma_error',
+      precip: 'precip_ewma_error',
+      pressure: 'pressure_ewma_error',
+      temp: 'temp_ewma_error',
+      temp_max: 'temp_max_ewma_error',
+      temp_min: 'temp_min_ewma_error',
+    };
+    if (!metric || !metricToField[metric]) {
+      return res.status(400).json({
+        code: 400,
+        message: "参数 metric 必须为 humidity, precip, pressure, temp, temp_max, temp_min 之一",
+      });
+    }
+    const targetField = metricToField[metric];
+
+    // 2. 日期范围
+    const { startDate, endDate } = parseDateRange(req);
+    const dateCondition = { [Op.between]: [startDate, endDate] };
+
+    // 3. 聚合查询：按 city 和 source 分组，计算平均值
+    // 聚合查询：按 city 和 source 分组，计算绝对值后的平均值
+    const results = await DailyError.findAll({
+      where: {
+        city: { [Op.in]: cities },
+        source: { [Op.in]: sources },
+        target_date: dateCondition,
+      },
+      attributes: [
+        'city',
+        'source',
+        [sequelize.fn('AVG', sequelize.fn('ABS', sequelize.col(targetField))), 'avg_value'],
+      ],
+      group: ['city', 'source'],
+      order: [['city', 'ASC'], ['source', 'ASC']],
+      raw: true,
+    });
+
+    // 4. 格式化输出：过滤掉 avg_value 为 null 的记录（如果某组全部为 null）
+    const data = results
+      .filter(row => row.avg_value !== null)
+      .map(row => ({
+        city: row.city,
+        source: row.source,
+        avg_value: parseFloat(row.avg_value),
+      }));
+
+    res.json({ code: 200, message: "success", data });
+  } catch (error) {
+    console.error("[GET /errors/heatmap] 查询失败:", error);
     res.status(500).json({ code: 500, message: "服务器内部错误" });
   }
 });
