@@ -322,7 +322,7 @@ router.get("/errors/avg-by-fields", async (req, res) => {
     // 获取日期范围并转换为 Sequelize 条件
     const { startDate, endDate } = parseDateRange(req);
     const dateCondition = { [Op.between]: [startDate, endDate] };
-
+  
     const metricFields = {
       humidity: 'humidity_ewma_error',
       precip: 'precip_ewma_error',

@@ -4,8 +4,11 @@ const getDataRouter = require('./controllers/index')
 const cors = require('cors');
 const app = express()
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(getWeatherRouter)
 app.use(getDataRouter)
+
 app.all('/*splat',(req,res)=>{
     res.send('<h1>404 Not Found</h1>')
 })

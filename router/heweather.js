@@ -3,6 +3,8 @@ const router = express.Router()
 const axios = require('axios');
 const {getValidToken} = require('../token')
 const {getYesterdayFormatted} = require('../utils/helpers')
+
+
 router.get('/hf_city',async (req,res)=>{
     try{
         const { number } = req.query
