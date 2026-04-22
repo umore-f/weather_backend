@@ -53,7 +53,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       comment: '湿度(%)'
     },
-    precip_total: {
+    precip: {
       type: DataTypes.DECIMAL(5, 2),
       comment: '降水量(mm)'
     },

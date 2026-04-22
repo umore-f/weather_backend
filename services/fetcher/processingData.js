@@ -31,7 +31,6 @@ async function getSourceWeights(city, sources, field, fieldConfigs) {
 
 // 计算新的 EWMA 值（纯函数）
 function computeNewEWMA(newError, previousEWMA, alpha, defaultEWMA) {
-  console.log("!!!!!!!!!!!!!!", previousEWMA);
 
   if (previousEWMA === null) {
     // 默认初始值是最大值的一半

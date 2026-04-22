@@ -48,12 +48,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    is_life: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   }, {
     sequelize,
     modelName: 'User',
-    tableName: 'users',        // 表名，与迁移保持一致
-    timestamps: true,          // 自动添加 createdAt 和 updatedAt
-    underscored: true,         // 使用蛇形命名 created_at
+    tableName: 'users',        
+    timestamps: true,         
+    underscored: true,         
     hooks: {
       beforeCreate: async (user) => {
         if (user.password) {

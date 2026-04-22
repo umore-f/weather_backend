@@ -13,7 +13,7 @@ require("dotenv").config({ path: "../../.env" });
 // ==================== 常量配置 ====================
 const COLD_START_THRESHOLD = 7;          // 冷启动阈值：实况数据少于该天数时使用中位数法
 
-const MAX_ITERATIONS = 5;                // 自洽迭代最大次数
+const MAX_ITERATIONS = 8;                // 自洽迭代最大次数
 const CONVERGENCE_TOLERANCE = 0.01;      // 收敛容差
 
 // ==================== 辅助函数 ====================
