@@ -195,4 +195,5 @@ async function setReal1(targetDate) {
 }
 module.exports = {
     setReal,
+    setReal1,
 };

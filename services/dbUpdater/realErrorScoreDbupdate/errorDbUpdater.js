@@ -25,7 +25,9 @@ async function computeCityErrors(city, targetDate) {
     // 获取预测数据（各数据源的预报）和实况数据
     const forecastData = await getNextWeather(city, targetDate);
     const observedData = await getRealData(city, targetDate);
-
+    console.log("!!!!!!!!",observedData);
+    console.log("@@@@@@@",forecastData);
+    
     const errors = calculateErrors(observedData, forecastData);
     return errors
 }
@@ -119,4 +121,5 @@ async function setErrors1(targetDate) {
 }
 module.exports = {
     setErrors,
+    setErrors1
 };

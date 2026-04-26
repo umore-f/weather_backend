@@ -98,4 +98,5 @@ async function setScore1(dateStr) {
 }
 module.exports = {
     setScore,
+    setScore1,
 };

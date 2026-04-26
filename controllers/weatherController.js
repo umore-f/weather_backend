@@ -35,7 +35,7 @@ async function getHistoryWeather(cityName, dateParam) {
     temp_min: record.temp_min,
     temp: record.temp,
     humidity: record.humidity,
-    precip: record.precip_total,
+    precip: record.precip,
     pressure: record.pressure,
   }));
 }
@@ -67,7 +67,7 @@ async function getNextWeather(cityName,dateParam) {
     temp_min: Number(record.temp_min),
     temp: Number(record.temp),
     humidity: Number(record.humidity),
-    precip: Number(record.precip_total),
+    precip: Number(record.precip),
     pressure: Number(record.pressure),
     source: record.source,
   }));
