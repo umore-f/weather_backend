@@ -11,7 +11,7 @@ const {
   get_yesterday_formatted,
 } = require("../utils/helpers");
 const { da } = require("@faker-js/faker");
-// console.log("City:", City);
+
 
 async function getHistoryWeather(cityName, dateParam) {
   // 如果传入了日期参数则使用，否则默认为昨天
@@ -56,9 +56,6 @@ async function getNextWeather(cityName,dateParam) {
     console.log("未找到记录");
     return [];
   }
-  // dailyWeatherList.forEach((record, index) => {
-  //   console.log(`记录 ${index + 1}:`, record.get({ plain: true }));
-  // });
 
   return dailyWeatherList.map((record) => ({
     city: record.city,
@@ -151,7 +148,6 @@ router.get('/days', async (req, res) => {
     if (req.query.source) {
       if (typeof req.query.source === 'string') {
         sources = req.query.source.split(',').map(s => s.trim()).filter(Boolean);
-        console.log("FESFSFSEFESFCVD##########",sources);
         
       } else if (Array.isArray(req.query.source)) {
         sources = req.query.source.map(s => s.trim()).filter(Boolean);
