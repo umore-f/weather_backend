@@ -57,8 +57,8 @@ const mutexErrors = new Mutex();
  */
 function startScheduler(options = {}) {
     const {
-        cronCities = process.env.CRON_CITIES || '10 13 * * *',
-        cronErrors = process.env.CRON_ERRORS || '30 16 * * *',
+        cronCities = process.env.CRON_CITIES || '30 13 * * *',
+        cronErrors = process.env.CRON_ERRORS || '00 16 * * *',
         cronHours = process.env.CRON_HOURS || '00 18 * * *',
         timezone = process.env.TZ || 'Asia/Shanghai'
     } = options;
@@ -72,8 +72,8 @@ function startScheduler(options = {}) {
         const release = await mutexCities.acquire();
         try {
             console.log(`[${new Date().toISOString()}] 定时任务触发：开始更新城市天气数据`);
-            // 超时30分钟 + 重试2次
-            await retry(() => withTimeout(updateAllCities(), 30 * 60 * 1000, 'updateAllCities'), 2, 5000);
+            // 超时180分钟 + 重试2次
+            await retry(() => withTimeout(updateAllCities(), 180 * 60 * 1000, 'updateAllCities'), 2, 5000);
             console.log(`[${new Date().toISOString()}] 城市天气数据更新完成`);
         } catch (error) {
             console.error(`[${new Date().toISOString()}] 城市天气数据更新失败:`, error);

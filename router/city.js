@@ -26,7 +26,6 @@ async function syncCityData(cityName) {
             console.log(`⚠️ 未找到城市: ${cityName}`);
             return null;
         }
-        console.log("!!!!!!!!!",response.data.location[0]);
         
         const { name, lat, lon, adm1:province, id:city_id } = response.data.location[0];
         const cityData = { name, lat, lon, province,city_id }

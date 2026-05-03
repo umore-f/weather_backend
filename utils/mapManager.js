@@ -12,7 +12,7 @@ function mapTiWeatherDataHours(rawData, options = {}) {
     is_valid = 1,
 
   } = options;
-  // 计算总降水量（累积值），根据你的业务需求调整
+  // 计算总降水量（累积值）
   const precipitation =
     (values.rainAccumulation || 0) +
     (values.snowAccumulation || 0) +
@@ -310,15 +310,6 @@ function mapVcWeatherDataDays1(rawData, options = {}) {
     temp_max: rawData.tempmax,
     temp_min: rawData.tempmin,
     temp: rawData.temp,
-    // feelslike_max: rawData.feelslikemax,
-    // feelslike_min: rawData.feelslike_min,
-    // feelslike: rawData.feelslike,
-    // precipcover: rawData.precip_cover,
-    // snow: rawData.snow,
-    // snow_depth: rawData.snowdepth,
-    // solar_radiation: rawData.solarradiation,
-    // solar_energy: rawData.solarenergy,
-    // severe_risk: rawData.severerisk,
     humidity: rawData.humidity,
     wind_speed: rawData.windspeed,
     wind_direction: rawData.winddir,

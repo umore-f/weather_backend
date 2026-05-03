@@ -89,7 +89,6 @@ async function getRobustBaseline(city, targetDate) {
  */
 async function selfConsistentBaseline(city, field ,targetDate) {
     const historys = await getHistoryWeather(city, targetDate);
-
     if (!historys || historys.length === 0) {
         throw new Error(`城市 ${city} 无历史数据，无法计算自洽真值`);
     }
@@ -101,7 +100,6 @@ async function selfConsistentBaseline(city, field ,targetDate) {
     let baseline = weightedAverage(values, weights);
 
     for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
-        // 使用绝对值误差,不能使用ewma误差
         const errors = values.map(v => Math.abs(v - baseline));
         const newWeights = errors.map(e => 1 / (e + 1e-6));
         const newBaseline = weightedAverage(values, newWeights);

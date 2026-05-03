@@ -105,7 +105,7 @@ async function updateAllCities() {
         for (const city of CITY_LIST) {
             await fetchAllDays(city);
             // 城市之间额外延迟2秒，作为全局缓冲
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
         console.log(`[${new Date().toISOString()}] 所有城市日级数据更新完成，耗时 ${elapsed} 秒`);
