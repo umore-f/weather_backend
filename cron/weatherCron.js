@@ -57,9 +57,9 @@ const mutexErrors = new Mutex();
  */
 function startScheduler(options = {}) {
     const {
-        cronCities = process.env.CRON_CITIES || '30 13 * * *',
-        cronErrors = process.env.CRON_ERRORS || '00 16 * * *',
-        cronHours = process.env.CRON_HOURS || '00 18 * * *',
+        cronCities = process.env.CRON_CITIES || '15 11 * * *',
+        cronErrors = process.env.CRON_ERRORS || '00 22 * * *',
+        cronHours = process.env.CRON_HOURS || '30 23 * * *',
         timezone = process.env.TZ || 'Asia/Shanghai'
     } = options;
 
